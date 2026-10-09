@@ -247,6 +247,43 @@ a.ref{color:var(--ribbon);text-decoration:underline;text-underline-offset:3px}
 .allright{margin:0;padding:16px 18px;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-weight:600}
 .row{display:grid;gap:10px}
 @media (prefers-reduced-motion:reduce){.edge i{transition:none}}
+
+/* 시작 화면은 한 화면 안에 들어가게: 남는 높이는 표지가 채우고, 모자라면 표지 여백부터 줄어듦 */
+.wrap.start{min-height:100vh;min-height:100dvh;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.wrap.start .cover{flex:1 1 auto;justify-content:center;padding-top:clamp(36px,7vh,56px);padding-bottom:clamp(44px,8vh,64px);gap:clamp(8px,1.6vh,14px)}
+.wrap.start .cover h1{font-size:clamp(40px,6vh,50px)}
+.wrap.start .range{padding-block:clamp(7px,1.3vh,12px)}
+.wrap.start .sheet{gap:clamp(8px,1.5vh,14px)}
+
+/* 누를 때 효과 */
+button,a{-webkit-tap-highlight-color:transparent}
+.primary,.secondary,.range,.opt,.slot,.hintbtn,.resetbtn,.versecard,.notch,.opt .n{
+  transition:transform .14s ease,background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease,opacity .2s ease;
+}
+.primary,.secondary,.range,.opt,.slot{position:relative;overflow:hidden;isolation:isolate}
+.primary:not(:disabled):active{transform:translateY(1px) scale(.985);box-shadow:inset 0 3px 10px rgba(0,0,0,.4)}
+.secondary:active,.opt:not(:disabled):active,.slot:not(:disabled):active{transform:scale(.97)}
+.range:active .notch{transform:translateX(5px)}
+.hintbtn:active{transform:scale(.95);background:var(--hint-bg)}
+.versecard:active{transform:scale(.98)}
+.ink{
+  position:absolute;z-index:-1;border-radius:50%;pointer-events:none;transform:scale(0);opacity:.6;
+  background:radial-gradient(circle,rgba(230,207,147,.85),rgba(196,162,91,.35) 55%,transparent 70%);
+  animation:ink .55s ease-out forwards;
+}
+@keyframes ink{to{transform:scale(1);opacity:0}}
+.primary .ink,.opt.sel .ink,.opt.paired .ink{opacity:.9}
+.opt.sel .n,.opt.paired .n{animation:pop .24s ease-out}
+.slot.filled .st{animation:pop .22s ease-out}
+@keyframes pop{0%{transform:scale(.55)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.feedback{animation:rise .3s ease-out}
+.hintbox{animation:rise .24s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .primary,.secondary,.range,.opt,.slot,.hintbtn,.resetbtn,.versecard,.notch,.opt .n{transition:none}
+  .opt.sel .n,.opt.paired .n,.slot.filled .st,.feedback,.hintbox{animation:none}
+  .primary:active,.secondary:active,.opt:active,.slot:active,.hintbtn:active,.versecard:active,.range:active .notch{transform:none}
+}
 </style>
 
 <style>
@@ -1357,6 +1394,7 @@ const countOf=pool=>pool.reduce((n,f)=>n+(f.type==="choice"?2:1),0);
 function top(){window.scrollTo({top:0,behavior:'auto'});}
 
 function renderStart(){
+  const SCREEN='start';
   const items=Object.entries(RANGES).map(([k,r])=>{
     const b=getBest(k);
     return `<button class="range" id="r-${k}" data-k="${k}" aria-pressed="${k===range}">
@@ -1364,13 +1402,13 @@ function renderStart(){
       <div class="t"><strong>${r.name}</strong><span>${r.desc}</span><span>${countOf(r.pool)}문제 중 ${ROUND}문제</span></div>
       <div class="best">${isNaN(b)?'첫 도전':`<b>${rankOf(b,ROUND)}</b>최고 ${b}점`}</div></button>`;
   }).join('');
+  app.className='wrap '+SCREEN;
   app.innerHTML=`
     <header class="cover leather"><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1><p>개역개정 성경으로 푸는 서른 문제</p><div class="orn" aria-hidden="true"></div></header>
     <section class="sheet">
       <div class="label">범위를 고르세요</div>
       <div class="ranges">${items}</div>
       <button class="primary" id="go">시작하기</button>
-      <p class="note">하나 고르기, 모두 고르기, 순서 배열, 짝짓기, 조각 맞추기, 본문 읽기가 섞여 나와요. 답을 고른 뒤 제출해야 채점되니 잘못 눌러도 바꿀 수 있어요. 막히면 힌트를 열어 보세요. 본문 읽기 문제는 대한성서공회 사이트에서 구절을 열어 읽어요.</p>
     </section>`;
   app.querySelectorAll('.range').forEach(b=>b.addEventListener('click',()=>{
     range=b.dataset.k; try{localStorage.setItem('bq-range',range);}catch(e){}
@@ -1468,6 +1506,7 @@ function startRound(){
 const btn=(i,txt,side='')=>`<button class="opt" data-i="${i}"${side?` data-side="${side}"`:''} aria-pressed="false"><span class="n"></span><span class="txt">${esc(txt)}</span><span class="mark"></span></button>`;
 
 function renderQuestion(){
+  const SCREEN='quiz';
   const it=round[idx];
   sel=single(it.type)?null:it.type==="match"?{active:null,map:it.opts.map(()=>-1)}:[];
   const verseCard=it.type==="verse"?`
@@ -1488,6 +1527,7 @@ function renderQuestion(){
         <div class="opts match mR">${it.rights.map((o,i)=>btn(i,o,'R')).join('')}</div>
       </div>`
     : `<div class="opts ${single(it.type)?'choice':it.type}">${it.opts.map((o,i)=>btn(i,o)).join('')}</div>`;
+  app.className='wrap '+SCREEN;
   app.innerHTML=`
     <div class="edge" aria-hidden="true"><i style="width:${(idx/round.length)*100}%"></i></div>
     <div class="ribbon" aria-label="${round.length}문제 중 ${idx+1}번째">${idx+1}<small>/ ${round.length}</small></div>
@@ -1675,6 +1715,7 @@ function submit(){
 }
 
 function renderResult(){
+  const SCREEN='result';
   const score=answers.filter(a=>a.right).length;
   const hints=answers.filter(a=>a.hint).length;
   const prev=getBest(range);
@@ -1695,6 +1736,7 @@ function renderResult(){
   const rank=rankOf(score,round.length), n=round.length;
   const scale=[['A',`${cutA(n)}점 이상`],['B',`${cutB(n)}~${cutA(n)-1}점`],['C',`${cutB(n)-1}점 이하`]]
     .map(([g,t])=>`<div class="${g===rank?'on':''}"><b>${g}</b>${t}</div>`).join('');
+  app.className='wrap '+SCREEN;
   app.innerHTML=`
     <header class="rhead leather">
       <span class="rrange"><span class="notch rn" aria-hidden="true">${NOTCH[range]}</span>${RANGES[range].name}</span>
@@ -1713,6 +1755,19 @@ function renderResult(){
   document.getElementById('home').addEventListener('click',renderStart);
   top();
 }
+
+// 누를 때 금박이 번지는 효과
+const RM=window.matchMedia('(prefers-reduced-motion: reduce)');
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest('.primary,.secondary,.opt,.slot,.range');
+  if(!b||b.disabled||RM.matches) return;
+  const r=b.getBoundingClientRect(), d=Math.max(r.width,r.height)*2.2;
+  const ink=document.createElement('span');
+  ink.className='ink';
+  ink.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+  b.appendChild(ink);
+  ink.addEventListener('animationend',()=>ink.remove());
+},{passive:true});
 
 renderStart();
 })();
