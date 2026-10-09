@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- 금박 테두리 -->
+    <path android:strokeColor="#c4a25b" android:strokeWidth="1.4" android:fillColor="#00000000"
+        android:pathData="M36,32h36a2,2 0 0 1 2,2v40a2,2 0 0 1 -2,2h-36a2,2 0 0 1 -2,-2v-40a2,2 0 0 1 2,-2z" />
+    <path android:strokeColor="#c4a25b" android:strokeWidth="0.7" android:fillColor="#00000000"
+        android:pathData="M38,34.5h32v39h-32z" />
+    <!-- 금박 십자가 -->
+    <path android:fillColor="#d9bc7a" android:pathData="M51.8,40h4.4v28h-4.4z" />
+    <path android:fillColor="#d9bc7a" android:pathData="M45,47h18v4.4h-18z" />
+    <!-- 리본 책갈피 -->
+    <path android:fillColor="#9d2a33" android:pathData="M64.5,32h4.5v19l-2.25,-2.4l-2.25,2.4z" />
+</vector>

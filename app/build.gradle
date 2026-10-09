@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+def vc = (project.findProperty('versionCode') ?: '1').toString().toInteger()
+def ks = new Properties()
+ks.load(new FileInputStream(rootProject.file('keystore/keystore.properties')))
+
+android {
+    namespace 'com.befrisbee.biblequiz'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.befrisbee.biblequiz'
+        minSdk 26
+        targetSdk 34
+        versionCode vc
+        versionName "1.0.${vc}"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(ks['storeFile'])
+            storePassword ks['storePassword']
+            keyAlias ks['keyAlias']
+            keyPassword ks['keyPassword']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    aaptOptions {
+        noCompress 'woff2'
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}

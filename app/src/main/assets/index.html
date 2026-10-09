@@ -1,0 +1,1721 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>성경 퀴즈</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* 가죽 성경: 남색 가죽 표지와 금박, 얇은 성경 종이, 빨간 리본 책갈피, 옆면 색인 홈 */
+:root{
+  --paper:#f3f3ee;
+  --surface:#ffffff;
+  --fg:#23262d;
+  --muted:#60656e;
+  --line:#d9d8cf;
+  --leather:#22304a;
+  --leather-2:#18233a;
+  --gilt:#c4a25b;
+  --gilt-hi:#e3cb8d;
+  --gilt-lo:#9c7d3c;
+  --on-leather:#e3cb8d;
+  --ribbon:#9d2a33;
+  --sel-bg:#22304a;
+  --sel-fg:#e3cb8d;
+  --sel-n-bg:#c4a25b;
+  --sel-n-fg:#18233a;
+  --hint:#8a5a12;
+  --hint-bg:#f8eedb;
+  --ok:#1d7148;
+  --ok-bg:#e2f1e7;
+  --bad:#ad2f36;
+  --bad-bg:#f8e4e5;
+  --f-display:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151a24;--surface:#1e2432;--fg:#ebe8de;--muted:#a3a7b2;--line:#323a4b;
+    --leather:#0f1626;--leather-2:#0a0f1b;--ribbon:#b33a43;
+    --sel-bg:#c4a25b;--sel-fg:#161b26;--sel-n-bg:#161b26;--sel-n-fg:#e3cb8d;
+    --hint:#ecc678;--hint-bg:#30281a;--ok:#71d3a1;--ok-bg:#163021;--bad:#f2959b;--bad-bg:#3a1d22;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151a24;--surface:#1e2432;--fg:#ebe8de;--muted:#a3a7b2;--line:#323a4b;
+  --leather:#0f1626;--leather-2:#0a0f1b;--ribbon:#b33a43;
+  --sel-bg:#c4a25b;--sel-fg:#161b26;--sel-n-bg:#161b26;--sel-n-fg:#e3cb8d;
+  --hint:#ecc678;--hint-bg:#30281a;--ok:#71d3a1;--ok-bg:#163021;--bad:#f2959b;--bad-bg:#3a1d22;color-scheme:dark;
+}
+body{background:var(--paper);color:var(--fg);font-family:var(--f-body);font-size:18px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{position:relative;max-width:560px;margin:0 auto;padding-inline:20px;padding-block:20px 40px;display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--gilt);outline-offset:2px}
+
+/* 가죽과 금박 */
+.leather{
+  color:var(--on-leather);
+  background:
+    radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.07),transparent 60%),
+    repeating-radial-gradient(circle at 30% 40%,rgba(0,0,0,.06) 0 1px,transparent 1px 3px),
+    linear-gradient(var(--leather),var(--leather-2));
+}
+.gilt-text{background:linear-gradient(180deg,var(--gilt-hi),var(--gilt) 55%,var(--gilt-lo));-webkit-background-clip:text;background-clip:text;color:transparent}
+.orn{width:56px;height:1.5px;background:var(--gilt);opacity:.85;position:relative}
+.orn::after{content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;background:var(--gilt);transform:translate(-50%,-50%) rotate(45deg)}
+.notch{
+  flex:none;display:grid;place-items:center;width:46px;height:46px;padding-right:4px;border-radius:0 23px 23px 0;
+  font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--gilt-hi);
+  background:linear-gradient(var(--leather),var(--leather-2));
+  box-shadow:inset 0 0 0 1px rgba(196,162,91,.3);
+}
+
+/* 시작: 표지 */
+.cover{
+  margin:-20px -20px 0;padding:56px 24px 64px;position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;
+}
+.cover::before{
+  content:"";position:absolute;inset:18px 18px 0;border:1.5px solid rgba(196,162,91,.7);border-bottom:0;border-radius:6px 6px 0 0;
+  box-shadow:inset 0 0 0 4px transparent,inset 0 0 0 5px rgba(196,162,91,.35);pointer-events:none;
+}
+.cover h1{font-size:50px;line-height:1.2;letter-spacing:.08em}
+.cover p{margin:0;font-family:var(--f-display);font-size:17px;color:var(--on-leather);opacity:.9}
+.sheet{
+  margin:-28px -20px 0;padding:26px 20px 0;border-radius:18px 18px 0 0;background:var(--paper);position:relative;
+  display:flex;flex-direction:column;gap:14px;
+}
+.label{font-size:15px;font-weight:600;color:var(--muted)}
+.ranges{display:flex;flex-direction:column}
+.range{
+  display:flex;align-items:center;gap:14px;text-align:left;width:calc(100% + 20px);
+  padding:12px 0;border:0;border-bottom:1px solid var(--line);background:transparent;margin-left:-20px;padding-right:2px;
+}
+.range .t{flex:1;min-width:0}
+.range strong{font-family:var(--f-display);font-size:22px;display:block;line-height:1.3}
+.range .t span{display:block;font-size:15px;color:var(--muted);line-height:1.45}
+.range .best{flex:none;font-size:14px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.range .best b{display:block;font-family:var(--f-display);font-size:22px;line-height:1.1;color:var(--fg)}
+.range[aria-pressed="true"] .notch{background:var(--ribbon);color:#fff}
+.range[aria-pressed="true"] strong{color:var(--ribbon)}
+.primary{
+  width:100%;padding:17px;border:0;border-radius:12px;font-size:20px;font-weight:600;letter-spacing:.04em;
+  color:var(--gilt-hi);
+  background:
+    repeating-radial-gradient(circle at 30% 40%,rgba(0,0,0,.06) 0 1px,transparent 1px 3px),
+    linear-gradient(#2a3a58,var(--leather-2));
+  box-shadow:inset 0 0 0 1px rgba(196,162,91,.35);
+}
+.primary:disabled{opacity:.38;cursor:default}
+.secondary{width:100%;padding:15px;border-radius:12px;border:1.5px solid var(--muted);background:transparent;font-size:18px;font-weight:600;color:var(--fg)}
+.note{font-size:14px;color:var(--muted);margin:0;line-height:1.65}
+
+/* 문제 */
+.edge{margin:-20px -20px 0;height:5px;background:var(--line);position:relative;overflow:hidden}
+.edge i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gilt-lo),var(--gilt-hi),var(--gilt-lo));transition:width .35s}
+.ribbon{
+  position:absolute;right:22px;top:0;width:46px;height:86px;padding-top:15px;z-index:1;
+  display:flex;flex-direction:column;align-items:center;background:var(--ribbon);color:#fff;
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);
+  font-family:var(--f-display);font-weight:700;font-size:23px;line-height:1;font-variant-numeric:tabular-nums;
+}
+.ribbon small{font-family:var(--f-body);font-weight:500;font-size:11px;opacity:.85;margin-top:5px}
+.qhead{display:flex;align-items:center;gap:10px;min-height:52px;margin-left:-20px;padding-right:64px}
+.qhead .notch{width:38px;height:38px;font-size:16px;border-radius:0 19px 19px 0}
+.qhead .kind{font-size:15px;font-weight:600;color:var(--fg)}
+.qhead .tname{font-size:14px;color:var(--muted)}
+.qtext{font-family:var(--f-display);font-size:25px;line-height:1.5;font-weight:700;margin:0;text-wrap:pretty}
+.howto{margin:-8px 0 0;font-size:15px;color:var(--muted)}
+.tools{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:-4px}
+.hintbtn{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;border:1.5px solid var(--hint);background:transparent;color:var(--hint);
+  font-size:16px;font-weight:600;
+}
+.resetbtn{border:0;background:transparent;color:var(--muted);font-size:15px;text-decoration:underline;text-underline-offset:3px;padding:8px 4px}
+.hintbox{margin:-4px 0 0;padding:12px 16px;border-radius:12px;background:var(--hint-bg);color:var(--fg);font-size:17px;line-height:1.6;border-left:3px solid var(--gilt)}
+.hintbox b{color:var(--hint);margin-right:6px}
+
+.opts{display:grid;gap:10px}
+.opt{
+  display:flex;align-items:center;gap:14px;text-align:left;width:100%;
+  padding:15px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:20px;line-height:1.4;color:var(--fg);
+}
+.opt .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;font-weight:600;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--line)}
+.opts.multi .opt .n{border-radius:8px}
+.opt .txt{flex:1;min-width:0}
+.opt .mark{flex:none;font-size:13px;font-weight:600}
+.opt.sel{border-color:var(--sel-bg);background:var(--sel-bg);color:var(--sel-fg)}
+.opt.sel .n{background:var(--sel-n-bg);color:var(--sel-n-fg);box-shadow:none}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--fg)}
+.opt.ok .n{background:var(--ok);color:var(--surface);box-shadow:none}
+.opt.miss{border-color:var(--ok);border-style:dashed;background:var(--surface)}
+.opt.miss .mark{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg);color:var(--fg)}
+.opt.bad .n{background:var(--bad);color:var(--surface);box-shadow:none}
+.opt.bad .mark{color:var(--bad)}
+.opt.dim{opacity:.5}
+
+.feedback{border-radius:12px;padding:16px 18px;background:var(--surface);border:1.5px solid var(--line);border-top:3px solid var(--gilt);display:flex;flex-direction:column;gap:6px}
+.feedback .verdict{font-family:var(--f-display);font-size:23px;font-weight:700}
+.feedback.right .verdict{color:var(--ok)}
+.feedback.wrong .verdict{color:var(--bad)}
+.feedback p{margin:0}
+.seqlist{margin:0;padding-left:1.4em}
+.ref{font-size:16px;font-weight:600;color:var(--fg)}
+a.ref{color:var(--ribbon);text-decoration:underline;text-underline-offset:3px}
+
+.versecard{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-decoration:none;
+  padding:14px 16px;border-radius:12px;
+}
+.versecard .vlabel{font-size:13px;font-weight:600;opacity:.8}
+.versecard .vref{font-family:var(--f-display);font-size:22px;font-weight:700;flex:1;min-width:0}
+.versecard .vopen{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--leather-2);background:var(--gilt);padding:7px 14px;border-radius:999px}
+
+/* 짝짓기 */
+.matchwrap{display:flex;flex-direction:column;gap:10px}
+.mlabel{font-size:14px;font-weight:600;color:var(--muted);margin-top:4px}
+.opts.match .opt .n{border-radius:8px}
+.opt.paired{border-color:var(--leather)}
+.opt.paired .n{background:var(--leather);color:var(--gilt-hi);box-shadow:none}
+.opt.waiting{border-style:dashed;border-color:var(--leather)}
+.opts.mL .opt.sel .n{background:var(--sel-n-bg);color:var(--sel-n-fg)}
+
+/* 조각 맞추기 */
+.slots{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:7px}
+.slot{
+  position:relative;min-height:72px;padding:18px 2px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-family:var(--f-display);font-size:22px;font-weight:700;line-height:1.2;text-align:center;
+}
+.slot .sn{position:absolute;top:4px;left:0;right:0;font-family:var(--f-body);font-size:12px;font-weight:600;color:var(--muted)}
+.slot .sm{font-family:var(--f-body);font-size:13px;font-weight:600;color:var(--ok)}
+.slot .sm:empty{display:none}
+.slot.next{border-style:dashed;border-color:var(--leather)}
+.slot.filled{border-color:var(--leather);box-shadow:inset 0 -3px 0 var(--gilt)}
+.slot:disabled{cursor:default}
+.slot.ok{border-color:var(--ok);background:var(--ok-bg);box-shadow:none}
+.slot.bad{border-color:var(--bad);background:var(--bad-bg);box-shadow:none}
+.opts.piece{grid-template-columns:1fr 1fr;gap:9px}
+.opts.piece .opt{padding:14px 12px;gap:8px;font-family:var(--f-display);font-size:23px;font-weight:700}
+.opts.piece .opt .txt{text-align:center}
+.opts.piece .opt .n{width:26px;height:26px;font-family:var(--f-body);font-size:14px}
+.opts.piece .opt:not(.sel):not(:disabled) .n{box-shadow:none}
+.opts.piece .opt.ok .n{background:transparent;color:var(--ok)}
+.opts.piece .opt .mark{font-family:var(--f-body)}
+.opts.piece .opt.dim .mark{color:var(--muted)}
+
+/* 결과: 성적 인장 */
+.rhead{margin:-20px -20px 0;padding:34px 24px 46px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;position:relative}
+.rhead::before{content:"";position:absolute;inset:18px 18px 0;border:1.5px solid rgba(196,162,91,.7);border-bottom:0;border-radius:6px 6px 0 0;pointer-events:none}
+.rrange .notch.rn{width:30px;height:30px;font-size:14px;border-radius:50%;padding:0;background:var(--gilt);color:var(--leather-2)}
+.rrange{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--on-leather);opacity:.9}
+.seal{
+  width:136px;height:136px;border-radius:50%;display:grid;place-items:center;position:relative;
+  --m-hi:var(--gilt-hi);--m-mid:var(--gilt);--m-lo:var(--gilt-lo);
+  background:radial-gradient(circle at 35% 30%,var(--m-hi),var(--m-mid) 45%,var(--m-lo));
+  box-shadow:0 0 0 4px var(--leather),0 0 0 5.5px var(--m-mid),0 8px 20px rgba(0,0,0,.35);
+}
+/* A 금박, B 은박, C 동박 */
+.seal.gB{--m-hi:#f4f5f7;--m-mid:#b9bdc6;--m-lo:#7c818c}
+.seal.gC{--m-hi:#f1caa3;--m-mid:#b67a4a;--m-lo:#7b4a27}
+.notch{box-shadow:inset -1px 0 0 rgba(196,162,91,.55),inset 0 1px 0 rgba(196,162,91,.55),inset 0 -1px 0 rgba(196,162,91,.55)}
+.seal::before{content:"";position:absolute;inset:9px;border-radius:50%;border:1.5px solid rgba(24,35,58,.45)}
+.seal b{font-family:var(--f-display);font-size:74px;line-height:1;color:var(--leather-2);margin-top:-4px}
+.seal small{position:absolute;bottom:17px;font-size:12px;font-weight:600;color:var(--leather-2);letter-spacing:.06em}
+.rscore{font-family:var(--f-display);font-size:22px;color:var(--on-leather)}
+.rscore b{font-size:40px;color:#fff;font-variant-numeric:tabular-nums;margin-right:4px}
+.rmsg{font-family:var(--f-display);font-size:20px;color:#fff;margin:0}
+.rsheet{margin:-28px -20px 0;padding:24px 20px 0;border-radius:18px 18px 0 0;background:var(--paper);position:relative;display:flex;flex-direction:column;gap:14px}
+.scale{display:grid;grid-template-columns:repeat(3,1fr);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.scale div{padding:9px 6px;text-align:center;font-size:14px;color:var(--muted);line-height:1.35}
+.scale div+div{border-left:1.5px solid var(--line)}
+.scale b{display:block;font-family:var(--f-display);font-size:22px;color:var(--fg)}
+.scale .on{background:var(--sel-bg);color:var(--sel-fg)}
+.scale .on b{color:var(--sel-fg)}
+.review{display:flex;flex-direction:column;gap:12px}
+.ritem{border-radius:12px;padding:14px 16px;background:var(--surface);border:1.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.ritem .rq{font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.45}
+.ritem .mine{font-size:16px;color:var(--bad)}
+.ritem .ans{font-size:17px;color:var(--ok);font-weight:600}
+.ritem p{margin:0;font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.tag{align-self:flex-start;font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--hint-bg);color:var(--hint)}
+.kindtag{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1.5px var(--line)}
+.allright{margin:0;padding:16px 18px;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-weight:600}
+.row{display:grid;gap:10px}
+@media (prefers-reduced-motion:reduce){.edge i{transition:none}}
+</style>
+
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+
+<script>
+(()=>{
+/*
+  모든 정답·해설·힌트·보기는 대한성서공회 개역개정 본문과 대조해 확인함.
+  choice: v에 같은 지식을 묻는 문장 두 가지. 보기 배열의 첫 번째가 정답, 나머지는 오답 후보(매번 3개를 뽑음).
+  verse : 구절 링크를 열어 읽고 푸는 문제. l = [책 코드, 장, 절]. a의 첫 번째가 정답.
+  multi : yes = 해당하는 것, no = 해당하지 않는 것. 매번 섞어 5개를 뽑음.
+  order : seq = 올바른 순서. 매번 4개를 뽑아 섞음.
+*/
+const OT=[
+ {ref:"창세기 6:15",ex:"방주의 길이는 300규빗, 너비는 50규빗, 높이는 30규빗이었어요.",h:"창세기 6장에서 하나님이 방주의 크기를 알려 주세요. 너비는 50규빗, 높이는 30규빗이었어요.",
+  v:[["노아가 지은 방주의 길이는 얼마였나요?",["300규빗","350규빗","280규빗","240규빗","320규빗","270규빗"]],
+     ["하나님이 노아에게 일러 주신 방주의 치수 가운데 '길이'는 얼마인가요?",["삼백 규빗","오십 규빗","삼십 규빗","이백칠십 규빗","삼백오십 규빗","삼백이십 규빗"]]]},
+ {ref:"창세기 5:27",ex:"므두셀라는 969세를 살고 죽었어요.",h:"에녹의 아들이고, 노아의 할아버지예요.",
+  v:[["성경에 기록된 사람 가운데 가장 오래 산 므두셀라는 몇 세에 죽었나요?",["969세","962세","950세","912세","930세","965세"]],
+     ["창세기 5장에서 구백육십구 세를 살고 죽었다고 기록된 사람은 누구인가요?",["므두셀라","노아","아담","라멕","야렛","게난"]]]},
+ {ref:"창세기 18:32",ex:"쉰 명에서 시작해 마흔다섯, 마흔, 서른, 스물을 거쳐 마지막에는 열 명까지 내려가며 간구했어요.",h:"아브라함은 쉰 명에서 시작해 다섯 번 더 수를 줄여 가며 간구했어요.",
+  v:[["소돔을 위해 간구하던 아브라함은 마지막에 의인이 몇 명만 있어도 멸하지 말아 달라고 했나요?",["열 명","스무 명","다섯 명","열다섯 명","서른 명","일곱 명"]],
+     ["아브라함이 소돔을 위해 간구하며 마지막으로 제시한 의인의 수는 몇 명인가요?",["십 명","이십 명","사십오 명","오 명","삼십 명","칠 명"]]]},
+ {ref:"창세기 22:2",ex:"하나님은 모리아 땅으로 가서 지시하는 산에서 이삭을 바치라고 하셨어요.",h:"아브라함은 길을 떠난 지 셋째 날에 그곳을 멀리서 바라보았어요.",
+  v:[["하나님이 아브라함에게 이삭을 번제로 바치라고 하신 곳은 어느 땅인가요?",["모리아 땅","가나안 땅 브엘세바","시내 산","갈멜 산","헤브론 땅","벧엘 땅"]],
+     ["이삭을 번제로 바치라는 명령을 받은 아브라함이 향한 곳은 어디인가요?",["모리아 땅의 한 산","호렙 산","헤브론","벧엘","세겜","시날 평지"]]]},
+ {ref:"창세기 25:34",ex:"야곱이 떡과 팥죽을 주었고, 에서는 먹고 마신 뒤 장자의 명분을 가볍게 여겼어요.",h:"붉은 음식이에요. 에서는 이 일로 '에돔'이라는 별명을 얻었어요.",
+  v:[["에서가 장자의 명분을 넘기고 야곱에게서 받아 먹은 것은 무엇인가요?",["떡과 팥죽","떡과 포도주","고기와 떡","무교병과 쓴 나물","보리떡과 물고기","젖과 꿀"]],
+     ["사냥에서 지쳐 돌아온 에서가 장자의 명분과 바꾼 야곱의 음식은 무엇인가요?",["팥죽과 떡","양고기와 떡","꿀과 떡","포도주와 무교병","보리떡과 물고기","별미와 포도주"]]]},
+ {ref:"창세기 29:20",ex:"야곱은 7년을 섬겼고, 라헬을 사랑하는 까닭에 그 기간을 며칠처럼 여겼어요.",h:"라반에게 속아 레아와 먼저 결혼한 뒤, 라헬을 위해 같은 기간을 한 번 더 섬겼어요.",
+  v:[["야곱은 라헬을 아내로 얻기 위해 처음에 몇 년 동안 라반을 섬겼나요?",["7년","6년","9년","14년","10년","5년"]],
+     ["라헬을 사랑한 야곱이 며칠같이 여겼다는 첫 번째 섬김의 기간은 얼마인가요?",["칠 년","십사 년","오 년","팔 년","육 년","십 년"]]]},
+ {ref:"창세기 37:28",ex:"형들은 요셉을 구덩이에서 끌어올려 은 이십에 팔았어요.",h:"훗날 가룟 유다가 받은 은 삼십보다 적은 값이었어요.",
+  v:[["형들이 요셉을 이스마엘 사람들에게 팔 때 받은 값은 얼마인가요?",["은 이십","은 삼십","은 이십오","은 열다섯","은 십팔","은 이십이"]],
+     ["요셉의 형들이 지나가던 상인들에게 요셉을 넘기고 받은 값은 얼마인가요?",["은 스물","은 서른","금 스물","은 스물다섯","은 열여덟","은 스물두"]]]},
+ {ref:"창세기 41:51",ex:"맏아들은 므낫세, 둘째는 에브라임이에요. 베냐민은 요셉의 동생, 르우벤은 요셉의 맏형이에요.",h:"'하나님이 모든 고난을 잊어버리게 하셨다'는 뜻으로 지은 이름이에요.",
+  v:[["요셉의 맏아들 이름은 무엇인가요?",["므낫세","에브라임","베냐민","르우벤","스불론","납달리"]],
+     ["애굽에서 태어난 요셉의 두 아들 가운데 형은 누구인가요?",["므낫세","에브라임","유다","시므온","르우벤","베냐민"]]]},
+ {ref:"출애굽기 3:1",ex:"모세는 장인인 미디안 제사장 이드로의 양 떼를 치고 있었어요.",h:"모세가 바로를 피해 머문 미디안 땅의 제사장이에요.",
+  v:[["모세가 호렙 산에서 하나님을 만날 때 치던 양 떼의 주인, 곧 모세의 장인은 누구인가요?",["이드로","라반","브두엘","아비멜렉","엘가나","나홀"]],
+     ["모세가 떨기나무 불꽃 가운데 하나님을 만나기 전, 그 양 떼를 치고 있던 장인은 누구인가요?",["이드로","발람","라반","멜기세덱","아비멜렉","나홀"]]]},
+ {ref:"민수기 17:8",ex:"레위 지파를 위해 낸 아론의 지팡이에 움이 돋고 꽃이 피어 살구 열매가 열렸어요.",h:"레위 지파를 대표해 낸 지팡이였어요.",
+  v:[["증거의 장막 안에서 하룻밤 사이에 싹이 나고 꽃이 피어 살구 열매까지 맺은 지팡이는 누구의 것인가요?",["아론","모세","여호수아","고라","갈렙","엘르아살"]],
+     ["민수기 17장에서 움이 돋고 꽃이 피어 열매를 맺은 지팡이의 주인과 그 열매를 바르게 짝지은 것은?",["아론 · 살구","모세 · 살구","아론 · 무화과","여호수아 · 석류","아론 · 감람","모세 · 석류"]]]},
+ {ref:"민수기 14:6-9",ex:"여분네의 아들 갈렙과 눈의 아들 여호수아가 백성에게 두려워하지 말라고 말했어요.",h:"훗날 여든다섯 살에 헤브론 산지를 기업으로 받은 사람이에요.",
+  v:[["열두 정탐꾼 가운데 여호수아와 함께 옷을 찢으며 가나안에 들어갈 수 있다고 말한 사람은 누구인가요?",["갈렙","고라","발람","비느하스","다단","아비람"]],
+     ["가나안을 정탐하고 돌아와 여호수아와 함께 백성을 설득한 사람은 누구인가요?",["여분네의 아들 갈렙","이스할의 아들 고라","브올의 아들 발람","엘르아살의 아들 비느하스","모세의 아들 게르솜","아론의 아들 엘르아살"]]]},
+ {ref:"사사기 7:7",ex:"물을 손으로 움켜 핥아 먹은 300명으로 구원하겠다고 하셨어요.",h:"하나님은 군사가 너무 많다며 두 번에 걸쳐 수를 줄이셨어요. 처음에 이만 이천 명이 돌아가고 만 명이 남았어요.",
+  v:[["하나님이 기드온에게 몇 명으로 미디안을 이기게 하겠다고 하셨나요?",["300명","320명","270명","10,000명","350명","22,000명"]],
+     ["기드온의 군사 가운데 손으로 물을 움켜 핥아 마셔 남게 된 사람은 몇 명인가요?",["삼백 명","삼백오십 명","만 명","이만 이천 명","이백칠십 명","삼백이십 명"]]]},
+ {ref:"사사기 15:15",ex:"삼손은 나귀의 새 턱뼈를 집어 들어 천 명을 죽였어요.",h:"사사기 15장, 레히라는 곳에서 블레셋 사람들을 상대로 한 일이에요.",
+  v:[["삼손이 나귀의 새 턱뼈로 죽인 사람은 몇 명인가요?",["천 명","천이백 명","팔백 명","삼천 명","구백 명","천백 명"]],
+     ["삼손이 레히에서 나귀의 새 턱뼈로 친 블레셋 사람의 수는?",["천 명","구백 명","천오백 명","육백 명","천이백 명","팔백 명"]]]},
+ {ref:"룻기 4:17",ex:"오벳은 이새의 아버지이고, 이새는 다윗의 아버지예요.",h:"이웃 여인들이 지어 준 이름이에요.",
+  v:[["룻이 보아스와 결혼하여 낳은 아들의 이름은 무엇인가요?",["오벳","이새","살몬","엘리멜렉","말론","기룐"]],
+     ["다윗의 할아버지이자 룻과 보아스의 아들은 누구인가요?",["오벳","이새","말론","살몬","보아스","기룐"]]]},
+ {ref:"사무엘상 17:40",ex:"다윗은 매끄러운 돌 다섯을 골라 목자의 주머니에 넣었어요.",h:"골리앗을 쓰러뜨린 것은 그중 돌 한 개였어요.",
+  v:[["다윗이 골리앗과 싸우러 나갈 때 시내에서 고른 매끄러운 돌은 몇 개인가요?",["다섯 개","네 개","세 개","여섯 개","일곱 개","두 개"]],
+     ["골리앗 앞에 나가기 전 다윗이 시내에서 골라 주머니에 넣은 것은 무엇인가요?",["매끄러운 돌 다섯","매끄러운 돌 셋","매끄러운 돌 여섯","매끄러운 돌 하나","매끄러운 돌 일곱","매끄러운 돌 넷"]]]},
+ {ref:"사무엘하 12:1-7",ex:"여호와께서 나단을 다윗에게 보내셨고, 나단은 비유를 마친 뒤 당신이 그 사람이라고 말했어요.",h:"훗날 솔로몬이 왕이 될 때 제사장 사독과 함께 기름을 부은 선지자예요.",
+  v:[["밧세바 일 이후 하나님이 다윗에게 보내 가난한 사람의 암양 비유로 그의 죄를 깨닫게 한 선지자는 누구인가요?",["나단","갓","사무엘","엘리야","엘리사","이사야"]],
+     ["다윗에게 부자와 가난한 사람의 비유를 들려준 뒤 '당신이 그 사람이라'고 말한 선지자는 누구인가요?",["나단","이사야","엘리사","사무엘","갓","아히야"]]]},
+ {ref:"열왕기상 12:20",ex:"이스라엘은 여로보암을 왕으로 삼았고, 유다는 솔로몬의 아들 르호보암을 따랐어요.",h:"솔로몬의 아들과 이름이 비슷해요.",
+  v:[["솔로몬이 죽은 뒤 나라가 나뉠 때, 유다 지파를 제외한 온 이스라엘이 왕으로 세운 사람은 누구인가요?",["여로보암","르호보암","아합","오므리","바아사","예후"]],
+     ["나라가 둘로 나뉠 때 북쪽 이스라엘의 첫 왕이 된 사람은 누구인가요?",["여로보암","르호보암","사울","예후","오므리","아합"]]]},
+ {ref:"열왕기상 18:22",ex:"바알의 선지자는 450명이었어요. 19절에 함께 나오는 400명은 아세라의 선지자예요.",h:"같은 자리에 아세라의 선지자 400명도 불려 왔어요. 그것과 헷갈리지 마세요.",
+  v:[["엘리야와 갈멜 산에서 대결한 바알의 선지자는 몇 명이었나요?",["450명","400명","480명","850명","420명","500명"]],
+     ["갈멜 산 대결에서 엘리야 혼자 맞선 바알의 선지자 수는?",["사백오십 명","사백 명","팔백오십 명","사백칠십 명","사백이십 명","오백 명"]]]},
+ {ref:"열왕기하 5:1, 14",ex:"아람 왕의 군대 장관 나아만이 일곱 번 몸을 잠그자 살이 어린아이 살처럼 회복되었어요.",h:"엘리사의 사환 게하시가 훗날 이 사람을 몰래 쫓아가 은과 옷을 받아 냈어요.",
+  v:[["엘리사의 말대로 요단 강에 일곱 번 몸을 잠가 나병이 나은 아람의 군대 장관은 누구인가요?",["나아만","게하시","하사엘","벤하닷","느부사라단","나봇"]],
+     ["엘리사가 요단 강에 가서 몸을 일곱 번 씻으라고 한 나병환자와 그의 나라를 바르게 짝지은 것은?",["나아만 · 아람","나아만 · 애굽","게하시 · 이스라엘","하사엘 · 아람","나아만 · 블레셋","벤하닷 · 아람"]]]},
+ {ref:"열왕기하 20:6",ex:"하나님은 히스기야의 날에 십오 년을 더하겠다고 하셨어요.",h:"해시계의 그림자가 십 도 뒤로 물러가는 표적과 함께 주어진 약속이에요.",
+  v:[["병들어 죽게 된 히스기야 왕이 기도하자, 하나님은 그의 생명을 몇 년 더해 주셨나요?",["15년","12년","18년","20년","10년","16년"]],
+     ["이사야를 통해 히스기야 왕에게 주어진 약속에서, 하나님이 더해 주겠다고 하신 날은 몇 년인가요?",["십오 년","십이 년","십칠 년","십 년","십육 년","이십 년"]]]},
+ {ref:"요나 1:3",ex:"요나는 욥바로 내려가 다시스로 가는 배를 탔어요. 욥바는 배를 탄 항구예요.",h:"니느웨와는 반대 방향, 배를 타고 가야 하는 곳이에요.",
+  v:[["요나가 니느웨로 가라는 명령을 피해 도망하려 한 곳은 어디인가요?",["다시스","욥바","다메섹","바벨론","니느웨","두로"]],
+     ["여호와의 얼굴을 피하려던 요나가 욥바에서 탄 배는 어디로 가는 배였나요?",["다시스","니느웨","앗수르","시돈","애굽","두로"]]]},
+ {ref:"다니엘 1:7",ex:"다니엘은 벨드사살, 하나냐는 사드락, 미사엘은 메삭, 아사랴는 아벳느고로 불렸어요. 벨사살은 다니엘 5장에 나오는 왕이에요.",h:"다니엘의 세 친구는 사드락, 메삭, 아벳느고로 불렸어요.",
+  v:[["바벨론의 환관장이 다니엘에게 붙인 새 이름은 무엇인가요?",["벨드사살","벨사살","사드락","아벳느고","메삭","아스부나스"]],
+     ["다니엘서 1장에서 다니엘이 받은 바벨론식 이름은 무엇인가요?",["벨드사살","벨사살","메삭","아스부나스","사드락","느부갓네살"]]]},
+ {ref:"느헤미야 6:15",ex:"성벽 역사는 엘룰월 25일에 끝났고, 52일이 걸렸어요.",h:"두 달이 채 걸리지 않았어요.",
+  v:[["느헤미야가 이끈 예루살렘 성벽 재건은 며칠 만에 끝났나요?",["52일","48일","56일","62일","54일","50일"]],
+     ["느헤미야가 예루살렘 성벽 공사를 마치기까지 걸린 기간은 얼마인가요?",["오십이 일","사십칠 일","오십오 일","오십팔 일","오십 일","오십삼 일"]]]},
+ {ref:"욥기 2:11",ex:"세 친구는 데만 사람 엘리바스, 수아 사람 빌닷, 나아마 사람 소발이에요. 엘리후는 32장에 따로 등장해요.",h:"세 친구는 각각 데만, 수아, 나아마 사람이었어요.",
+  v:[["욥에게 재앙이 닥쳤다는 소식을 듣고 위로하러 온 세 친구가 아닌 사람은 누구인가요?",["엘리후","엘리바스","빌닷","소발"]],
+     ["욥을 위로하러 함께 온 세 친구를 바르게 나열한 것은?",["엘리바스 · 빌닷 · 소발","엘리바스 · 엘리후 · 소발","빌닷 · 소발 · 엘리후","엘리바스 · 빌닷 · 엘리후"]]]},
+ {ref:"에스더 2:5-7",ex:"에스더는 모르드개의 삼촌의 딸이었고, 모르드개가 그를 딸처럼 키웠어요.",h:"베냐민 자손으로, 대궐 문에 앉아 있다가 왕을 해치려는 음모를 알게 된 사람이에요.",
+  v:[["부모를 여읜 에스더를 자기 딸같이 양육한 사람은 누구인가요?",["모르드개","하만","헤개","아하수에로","므무간","하닷사"]],
+     ["에스더서에서 삼촌의 딸 에스더를 맡아 키운 사람은 누구인가요?",["모르드개","하만","므무간","아하수에로","헤개","와스디"]]]},
+
+ // 새 객관식
+ {ref:"창세기 5:3",ex:"아담은 130세에 자기 모양 곧 자기 형상과 같은 아들을 낳아 이름을 셋이라 했어요.",h:"이 아들은 에노스의 아버지예요.",
+  v:[["아담이 셋을 낳았을 때의 나이는?",["130세","120세","105세","135세","125세","140세"]],
+     ["창세기 5장에서 아담이 백삼십 세에 낳은 아들은 누구인가요?",["셋","가인","아벨","에노스","에녹","라멕"]]]},
+ {ref:"창세기 5:23-24",ex:"에녹은 365년을 살았고, 하나님과 동행하다가 하나님이 데려가시므로 세상에 있지 않았어요.",h:"므두셀라의 아버지예요.",
+  v:[["하나님과 동행하다 하나님이 데려가신 에녹은 세상에 몇 년 있었나요?",["365년","360년","375년","345년","395년","350년"]],
+     ["창세기 5장에서 하나님과 동행하다가 하나님이 데려가셨다고 기록된 사람은?",["에녹","므두셀라","라멕","야렛","노아","게난"]]]},
+ {ref:"창세기 11:2, 9",ex:"사람들은 시날 평지에 거류하며 탑을 쌓았고, 하나님이 언어를 혼잡하게 하신 그 성의 이름을 바벨이라 했어요.",h:"하나님이 그곳에서 온 땅의 언어를 혼잡하게 하셨어요.",
+  v:[["바벨탑을 쌓은 사람들이 거류한 평지는 어디인가요?",["시날 평지","모압 평지","요단 들","브엘세바 들","갈대아 우르","소알 평지"]],
+     ["사람들이 탑을 쌓다가 언어가 혼잡하게 된 성의 이름은?",["바벨","니느웨","소돔","에덴","하란","우르"]]]},
+ {ref:"창세기 12:4",ex:"아브람이 하란을 떠날 때 75세였어요.",h:"이삭이 태어날 때 아브라함은 백 세였어요.",
+  v:[["아브람이 하란을 떠날 때의 나이는?",["75세","70세","85세","99세","65세","80세"]],
+     ["아브람이 칠십오 세에 떠난 곳은 어디인가요?",["하란","갈대아 우르","애굽","세겜","브엘세바","헤브론"]]]},
+ {ref:"창세기 19:26",ex:"롯의 아내는 뒤를 돌아보았으므로 소금 기둥이 되었어요.",h:"소돔과 고모라를 멸하실 때의 일이에요.",
+  v:[["소돔을 떠나다 뒤를 돌아본 롯의 아내는 무엇이 되었나요?",["소금 기둥","돌기둥","재","모래 언덕","흙더미","불기둥"]],
+     ["소돔을 떠나다 뒤를 돌아보아 소금 기둥이 된 사람은 누구인가요?",["롯의 아내","롯의 큰딸","롯의 작은딸","사라","하갈","리브가"]]]},
+ {ref:"창세기 32:30",ex:"야곱은 하나님과 대면하여 보았으나 생명이 보전되었다며 그곳을 브니엘이라 했어요.",h:"같은 밤에 야곱은 '이스라엘'이라는 새 이름을 받았어요.",
+  v:[["야곱이 하나님과 대면하여 보았다며 그곳에 붙인 이름은?",["브니엘","벧엘","마하나임","브엘세바","길갈","엘벧엘"]],
+     ["창세기 32장에서 밤새 씨름한 야곱이 생명이 보전되었다며 이름 붙인 곳은?",["브니엘","벧엘","세겜","얍복","길르앗","마하나임"]]]},
+ {ref:"창세기 41:46",ex:"요셉이 애굽 왕 바로 앞에 설 때 삼십 세였어요.",h:"바로는 그에게 '사브낫바네아'라는 이름을 주었어요.",
+  v:[["요셉이 애굽 왕 바로 앞에 섰을 때의 나이는?",["30세","28세","33세","27세","35세","40세"]],
+     ["서른 살에 애굽 왕 바로 앞에 서서 온 애굽을 다스리게 된 사람은?",["요셉","모세","다니엘","느헤미야","여호수아","아론"]]]},
+ {ref:"출애굽기 15:20",ex:"아론의 누이 선지자 미리암이 소고를 잡았고, 여인들이 소고를 잡고 춤추며 따랐어요.",h:"모세와 아론의 누이예요.",
+  v:[["바다를 건넌 뒤 손에 소고를 잡은 여선지자는 누구인가요?",["미리암","드보라","한나","훌다","십보라","라합"]],
+     ["출애굽기 15장에서 '아론의 누이'로 소개된 여선지자는?",["미리암","십보라","엘리세바","드보라","훌다","요게벳"]]]},
+ {ref:"출애굽기 15:23",ex:"이스라엘이 마라에 이르렀으나 물이 써서 마실 수 없었어요.",h:"물이 써서 마시지 못했기 때문에 그런 이름이 붙었다고 기록된 곳이에요.",
+  v:[["광야에서 물이 써서 마시지 못한 곳은 어디인가요?",["마라","엘림","므리바","르비딤","가데스","신 광야"]],
+     ["출애굽기 15장에서 이스라엘이 마실 수 없는 쓴 물을 만난 곳은?",["마라","엘림","르비딤","가데스","므리바","숙곳"]]]},
+ {ref:"여호수아 2:1",ex:"정탐꾼들은 여리고에 가서 라합이라 하는 기생의 집에 들어가 유숙했어요.",h:"훗날 여리고 성이 무너질 때 붉은 줄을 매어 둔 집이에요.",
+  v:[["여호수아가 보낸 정탐꾼들이 여리고에서 유숙한 집의 여인은?",["라합","룻","다말","드보라","야엘","들릴라"]],
+     ["여호수아가 보낸 두 정탐꾼이 라합의 집에 들어간 성은?",["여리고","아이","기브온","헤브론","세겜","예루살렘"]]]},
+ {ref:"여호수아 10:12",ex:"여호수아는 태양에게 기브온 위에, 달에게 아얄론 골짜기에서 머무르라고 했어요.",h:"태양과 달에게 각각 다른 장소를 말했어요.",
+  v:[["여호수아가 '태양아 머무르라'고 한 곳은?",["기브온","아얄론 골짜기","여리고","아이","길갈","실로"]],
+     ["같은 기도에서 여호수아가 달에게 머무르라고 한 곳은?",["아얄론 골짜기","기브온","엘라 골짜기","이스르엘 골짜기","아골 골짜기","헌놈의 골짜기"]]]},
+ {ref:"사무엘상 1:3",ex:"엘리의 두 아들 홉니와 비느하스가 실로에서 여호와의 제사장으로 있었어요.",h:"한 아들의 이름은 민수기에 나오는 엘르아살의 아들과 같아요.",
+  v:[["실로의 제사장 엘리의 두 아들은 누구인가요?",["홉니와 비느하스","나답과 아비후","엘르아살과 이다말","요엘과 아비야","말론과 기룐","아히멜렉과 아비아달"]],
+     ["홉니와 비느하스의 아버지인 제사장은 누구인가요?",["엘리","사무엘","아론","사독","아히멜렉","엘가나"]]]},
+ {ref:"사무엘상 9:1-2",ex:"사울은 베냐민 지파 사람 기스의 아들로, 모든 백성보다 어깨 위만큼 더 컸어요.",h:"사울은 키가 모든 백성보다 어깨 위만큼 더 컸어요.",
+  v:[["사무엘상 9장에 소개된 사울은 어느 지파 사람인가요?",["베냐민","유다","에브라임","레위","단","므낫세"]],
+     ["사울의 아버지 이름은 무엇인가요?",["기스","이새","엘가나","넬","요아스","마노아"]]]},
+ {ref:"열왕기상 6:38",ex:"솔로몬은 칠 년 동안 성전을 건축했어요.",h:"한 주간의 날 수와 같은 햇수예요.",
+  v:[["솔로몬이 성전을 건축하는 데 걸린 기간은?",["7년","6년","8년","13년","10년","5년"]],
+     ["열왕기상 6장에서 솔로몬이 칠 년 동안 건축했다고 기록된 것은?",["여호와의 성전","자기 왕궁","예루살렘 성벽","바로의 딸의 집","레바논 나무 궁","다시스의 배"]]]},
+ {ref:"열왕기상 19:8",ex:"엘리야는 천사가 준 음식을 먹고 힘을 얻어 사십 주야를 가서 하나님의 산 호렙에 이르렀어요.",h:"모세가 떨기나무 불꽃을 본 산과 같은 이름이에요.",
+  v:[["엘리야가 천사가 준 음식을 먹고 힘을 얻어 걸어가 이른 산은?",["호렙","갈멜","모리아","다볼","시온","헤르몬"]],
+     ["엘리야가 그 음식의 힘으로 호렙 산까지 걸어간 기간은?",["사십 주야","사흘 밤낮","칠 주야","삼십 주야","사십오 주야","오십 주야"]]]},
+ {ref:"이사야 6:1, 6-7",ex:"웃시야 왕이 죽던 해에 이사야가 환상을 보았고, 스랍이 제단의 핀 숯을 그의 입에 대었어요.",h:"그 숯은 제단에서 부젓가락으로 집은 것이었어요.",
+  v:[["이사야가 성전 환상을 본 것은 어느 왕이 죽던 해였나요?",["웃시야","히스기야","아하스","요담","므낫세","요시야"]],
+     ["스랍이 제단에서 집어 이사야의 입에 댄 것은 무엇인가요?",["핀 숯","두루마리","기름","피","소금","우슬초"]]]},
+ {ref:"다니엘 6:9-10",ex:"다리오 왕이 금령에 도장을 찍었지만, 다니엘은 전에 하던 대로 하루 세 번 무릎을 꿇고 기도했어요.",h:"다니엘은 예루살렘을 향해 열린 창 앞에서 기도했어요.",
+  v:[["다니엘은 금령을 알고도 하루 몇 번 기도했나요?",["세 번","두 번","일곱 번","다섯 번","네 번","한 번"]],
+     ["다니엘을 사자 굴에 넣게 한 금령에 도장을 찍은 왕은?",["다리오","고레스","느부갓네살","벨사살","아하수에로","아닥사스다"]]]},
+ {ref:"창세기 35:18",ex:"라헬은 죽어 가며 아들 이름을 베노니라 했지만, 야곱은 베냐민이라 불렀어요.",h:"한 이름은 어머니가, 다른 이름은 아버지가 지었어요.",
+  v:[["라헬이 죽어 가며 아들에게 붙인 이름은?",["베노니","베냐민","요셉","납달리","단","이가봇"]],
+     ["야곱이 '베노니'를 고쳐 부른 이름은 무엇인가요?",["베냐민","요셉","르우벤","스불론","이스라엘","브니엘"]]]},
+
+ // 본문 링크 문제
+ {type:"verse",l:["gen",2,17],ref:"창세기 2:17",q:"이 구절에서 '먹는 날에는 반드시 죽으리라'고 하신 것은 어떤 나무의 열매인가요?",
+  a:["선악을 알게 하는 나무","생명나무","무화과나무","감람나무","포도나무","종려나무"],ex:"동산의 다른 나무 열매는 먹어도 되지만, 선악을 알게 하는 나무의 열매는 먹지 말라고 하셨어요.",h:"바로 앞 16절에서 먹어도 되는 것을 먼저 말씀하세요."},
+ {type:"verse",l:["gen",3,15],ref:"창세기 3:15",q:"이 구절에서 하나님이 '너'라고 부르신 대상은 누구인가요?",
+  a:["뱀","아담","하와","가인","아벨","그룹들"],ex:"14절에서 여호와 하나님이 뱀에게 말씀하시기 시작하고, 15절은 그 말씀의 이어지는 부분이에요.",h:"14절부터 읽으면 누구에게 하신 말씀인지 나와요."},
+ {type:"verse",l:["gen",25,30],ref:"창세기 25:30",q:"이 구절에서 에서의 별명이 된 '에돔'은 무엇과 관련된 이름인가요?",
+  a:["에서가 달라고 한 붉은 것","털이 많은 몸","사냥 솜씨","장자의 명분","들사람의 삶","형제의 발꿈치"],ex:"지친 에서가 그 붉은 것을 먹게 해 달라고 했고, 그래서 별명이 에돔이 되었어요.",h:"에서가 야곱에게 달라고 한 음식의 빛깔을 보세요."},
+ {type:"verse",l:["gen",32,28],ref:"창세기 32:28",q:"이 구절에서 야곱에게 주어진 새 이름은 무엇인가요?",
+  a:["이스라엘","브니엘","벧엘","에돔","이스마엘","여수룬"],ex:"하나님과 사람들과 겨루어 이겼다는 이유로 이스라엘이라는 이름을 받았어요. 브니엘은 30절의 지명이에요.",h:"30절에 나오는 지명과 헷갈리지 마세요."},
+ {type:"verse",l:["gen",41,26],ref:"창세기 41:26",q:"이 구절에서 요셉이 풀이한 '일곱 좋은 암소'는 무엇을 뜻하나요?",
+  a:["일곱 해","일곱 지파","애굽의 일곱 성","일곱 번의 제사","바로의 일곱 신하","일곱 달"],ex:"일곱 좋은 암소와 일곱 좋은 이삭은 일곱 해, 곧 풍년 일곱 해를 뜻해요.",h:"27절의 흉한 소 풀이와 짝을 이뤄요."},
+ {type:"verse",l:["exo",16,15],ref:"출애굽기 16:15",q:"이 구절에서 이스라엘 자손이 '이것이 무엇이냐' 하고 물은 것을 모세는 무엇이라고 설명했나요?",
+  a:["여호와께서 먹으라고 주신 양식","광야에 내린 서리","메추라기 고기","애굽에서 가져온 무교병","반석에서 난 꿀","하늘에서 떨어진 우박"],ex:"모세는 그것이 여호와께서 먹게 하신 양식이라고 했고, 31절에서 백성은 그것을 만나라 불렀어요.",h:"같은 장 31절에 그 이름이 나와요."},
+ {type:"verse",l:["rut",1,16],ref:"룻기 1:16",q:"이 구절에서 룻이 '어머니'라고 부른 사람은 누구인가요?",
+  a:["나오미","오르바","한나","라헬","미리암","드보라"],ex:"룻은 시어머니 나오미를 따라가겠다고 했어요. 오르바는 시어머니에게 입 맞추고 돌아간 다른 며느리예요.",h:"14절에서 다른 며느리가 먼저 돌아가요."},
+ {type:"verse",l:["1sa",3,10],ref:"사무엘상 3:10",q:"이 구절에서 '주의 종'은 누구를 가리키나요?",
+  a:["사무엘","엘리","엘가나","홉니","다윗","나단"],ex:"사무엘이 엘리가 가르쳐 준 대로 대답하며 자신을 '주의 종'이라 낮추어 불렀어요.",h:"9절에서 엘리가 대답하는 법을 가르쳐 줘요."},
+ {type:"verse",l:["2sa",12,7],ref:"사무엘하 12:7",q:"이 구절에서 나단이 말한 '그 사람'은 비유 속 누구인가요?",
+  a:["가난한 사람의 양을 빼앗은 부자","양을 빼앗긴 가난한 사람","부자의 집에 온 행인","양을 지키던 목자","성읍의 재판관","가난한 사람의 딸"],ex:"다윗이 우리아의 아내를 빼앗은 일을, 가난한 사람의 하나뿐인 양을 빼앗은 부자에 빗댔어요.",h:"4절에서 비유 속 부자가 한 일을 보세요."},
+ {type:"verse",l:["1ki",3,9],ref:"열왕기상 3:9",q:"이 구절에서 솔로몬이 하나님께 구한 것은 무엇인가요?",
+  a:["백성을 재판할 듣는 마음","오래 사는 것","많은 재물","원수의 생명","강한 군대","성전을 지을 금"],ex:"솔로몬은 선악을 분별해 백성을 재판할 듣는 마음을 구했어요. 11절은 그가 장수와 부와 원수의 생명을 구하지 않았다고 해요.",h:"11절에서 하나님이 솔로몬이 구하지 않은 것을 말씀하세요."},
+ {type:"verse",l:["1ki",19,4],ref:"열왕기상 19:4",q:"이 구절에서 엘리야가 앉아 죽기를 구한 곳은 어디인가요?",
+  a:["로뎀 나무 아래","그릿 시냇가","갈멜 산 꼭대기","사르밧 과부의 집","요단 강가","호렙 산 굴"],ex:"엘리야는 광야로 하룻길을 들어가 로뎀 나무 아래에 앉아 죽기를 구했어요.",h:"광야로 하룻길을 들어간 뒤의 일이에요."},
+ {type:"verse",l:["dan",5,27],ref:"다니엘 5:27",q:"이 구절에서 '데겔'은 어떤 뜻으로 풀이되나요?",
+  a:["왕을 저울에 달아 보니 부족함","나라의 시대를 세어 끝나게 함","나라가 나뉘어 다른 민족에게 줌","왕이 들짐승처럼 들에서 지냄","왕의 날이 길어짐","성전 그릇을 돌려보냄"],ex:"벽에 쓰인 메네, 메네, 데겔, 우바르신 가운데 데겔은 왕을 저울에 달아 보니 부족함이 보였다는 뜻이에요.",h:"25절에 벽에 쓰인 네 단어가 나와요."},
+ {type:"verse",l:["jnh",4,11],ref:"요나 4:11",q:"이 구절에서 하나님이 아끼신다고 하신 것은 무엇인가요?",
+  a:["큰 성읍 니느웨","요나가 아낀 박넝쿨","다시스로 가는 배","예루살렘 성전","욥바 항구","앗수르의 왕궁"],ex:"요나가 하룻밤에 났다가 말라 버린 박넝쿨을 아꼈듯, 하나님은 사람과 가축이 많은 니느웨를 아끼신다고 하셨어요.",h:"10절에서 요나가 아낀 것과 비교하세요."},
+
+ // 모두 고르기
+ {type:"multi",ref:"다니엘 1:3, 7",ex:"다니엘의 세 친구 하나냐, 미사엘, 아사랴는 각각 사드락, 메삭, 아벳느고로 불렸어요. 다니엘은 벨드사살, 환관장은 아스부나스예요.",h:"다니엘 자신은 '벨드사살'이라는 이름을 받았어요.",
+  q:["바벨론의 환관장이 다니엘의 세 친구에게 붙인 이름을 모두 고르세요.","하나냐, 미사엘, 아사랴가 바벨론에서 받은 새 이름에 해당하는 것을 모두 고르세요."],
+  yes:["사드락","메삭","아벳느고"],no:["벨드사살","아스부나스","벨사살","느부갓네살"]},
+ {type:"multi",ref:"창세기 29:23-28; 30:4, 9",ex:"레아와 라헬은 라반의 두 딸이에요. 라헬은 시녀 빌하를, 레아는 시녀 실바를 야곱에게 아내로 주었어요.",h:"두 자매와, 그 자매들이 각각 야곱에게 준 시녀까지 생각해 보세요.",
+  q:["창세기에서 야곱의 아내가 된 사람을 모두 고르세요.","창세기 29~30장에서 야곱에게 아내로 주어진 사람을 모두 고르세요."],
+  yes:["레아","라헬","빌하","실바"],no:["리브가","디나","사라","미갈"]},
+ {type:"multi",ref:"창세기 6:10; 5:3, 28-29",ex:"노아의 세 아들은 셈, 함, 야벳이에요. 셋은 아담의 아들, 라멕은 노아의 아버지예요.",h:"노아의 아버지 이름과 아담의 아들 이름도 보기 중에 섞여 있을 수 있어요.",
+  q:["노아의 아들을 모두 고르세요.","창세기 6장에서 노아가 낳은 아들에 해당하는 이름을 모두 고르세요."],
+  yes:["셈","함","야벳"],no:["셋","라멕","에노스","가인"]},
+ {type:"multi",ref:"출애굽기 7~10장",ex:"출애굽기 7~10장의 재앙은 물이 피가 됨, 개구리, 이, 파리, 가축의 죽음, 악성 종기, 우박, 메뚜기, 흑암 순이에요. 마지막 재앙은 장자의 죽음이에요.",h:"모두 애굽 땅에서 일어난 일이에요. 광야에서 생긴 일은 들어가지 않아요.",
+  q:["출애굽기에서 애굽에 내린 재앙에 해당하는 것을 모두 고르세요.","모세 때 바로와 애굽 땅에 닥친 재앙으로 기록된 것을 모두 고르세요."],
+  yes:["물이 피가 됨","개구리","이","파리","악성 종기","우박","메뚜기","흑암"],no:["불뱀","지진","큰 홍수","전갈 떼"]},
+ {type:"multi",ref:"열왕기하 4:6, 35; 5:10; 6:6",ex:"까마귀가 먹인 일, 사르밧 과부의 아들을 살린 일, 회오리바람으로 올라간 일, 갈멜 산 대결은 모두 엘리야의 이야기예요.",h:"엘리야와 헷갈리기 쉬워요. 엘리야의 이야기는 열왕기상 17~18장과 열왕기하 2장에 나와요.",
+  q:["다음 중 엘리사가 한 일을 모두 고르세요.","열왕기하에 기록된 엘리사의 일에 해당하는 것을 모두 고르세요."],
+  yes:["빈 그릇들에 기름이 가득 차게 함","수넴 여인의 죽은 아들을 살림","물에 빠진 쇠도끼를 떠오르게 함","나아만에게 요단 강에 씻으라고 함"],
+  no:["까마귀가 가져온 떡과 고기를 먹음","사르밧 과부의 아들을 살림","회오리바람으로 하늘에 올라감","갈멜 산에서 바알 선지자들과 대결함"]},
+ {type:"multi",ref:"창세기 29:32-35; 30:6-24",ex:"레아가 낳은 아들은 르우벤, 시므온, 레위, 유다, 잇사갈, 스불론이에요. 단과 납달리는 빌하, 갓과 아셀은 실바, 요셉은 라헬이 낳았어요.",h:"레아는 먼저 넷을 낳고, 시녀의 아들들이 태어난 뒤 둘을 더 낳았어요.",
+  q:["레아가 직접 낳은 야곱의 아들을 모두 고르세요.","창세기 29~30장에서 레아가 낳은 아들에 해당하는 이름을 모두 고르세요."],
+  yes:["르우벤","시므온","레위","유다","잇사갈","스불론"],no:["단","납달리","갓","아셀","요셉"]},
+
+ // 순서 배열
+ {type:"order",ref:"창세기 1:1-31",ex:"첫째 날 빛, 둘째 날 궁창, 셋째 날 땅과 바다와 식물, 넷째 날 광명체, 다섯째 날 물고기와 새, 여섯째 날 땅의 짐승과 사람이에요.",h:"물속의 생물과 하늘의 새는 같은 날 만드셨어요.",
+  q:["창세기 1장에서 하나님이 만드신 것을 먼저 만드신 순서대로 놓으세요.","천지 창조의 여섯 날 가운데 앞선 날에 만드신 것부터 순서대로 고르세요."],
+  seq:["빛","궁창(하늘)","땅과 바다, 풀과 나무","해와 달과 별","물고기와 새","땅의 짐승과 사람"]},
+ {type:"order",ref:"창세기 5:1-32",ex:"아담, 셋, 에노스, 게난, 마할랄렐, 야렛, 에녹, 므두셀라, 라멕, 노아 순이에요.",h:"므두셀라는 에녹의 아들이고, 노아의 할아버지예요.",
+  q:["창세기 5장의 족보를 윗세대부터 순서대로 놓으세요.","아담부터 노아까지의 계보에서 먼저 태어난 세대부터 순서대로 고르세요."],
+  seq:["아담","셋","에노스","게난","마할랄렐","야렛","에녹","므두셀라","라멕","노아"]},
+ {type:"order",ref:"출애굽기 3; 7; 14; 16; 20; 32장",ex:"떨기나무 부르심(3장), 첫 재앙(7장), 바다를 건넘(14장), 만나(16장), 십계명(20장), 금 송아지(32장) 순이에요.",h:"재앙은 애굽 안에서, 만나는 바다를 건넌 뒤 신 광야에서 있었던 일이에요.",
+  q:["출애굽기에 기록된 사건을 일어난 순서대로 놓으세요.","모세와 이스라엘 백성에게 있었던 일을 출애굽기의 순서대로 고르세요."],
+  seq:["떨기나무 불꽃 가운데서 모세를 부르심","나일 강 물이 피가 됨","바다 가운데를 마른 땅으로 건넘","하늘에서 만나가 내림","십계명을 주심","아론이 금 송아지를 만듦"]},
+ {type:"order",ref:"사사기 3:9, 15; 4:4; 6:11; 11:1; 13:24",ex:"옷니엘(3장), 에훗(3장), 드보라(4장), 기드온(6장), 입다(11장), 삼손(13장) 순이에요.",h:"옷니엘은 갈렙의 아우 그나스의 아들로, 사사기에서 가장 먼저 나오는 구원자예요.",
+  q:["사사기에 등장하는 사사를 나오는 순서대로 놓으세요.","사사기에서 먼저 등장하는 사사부터 순서대로 고르세요."],
+  seq:["옷니엘","에훗","드보라","기드온","입다","삼손"]},
+ {type:"order",ref:"창세기 29:32-35; 30:6-24",ex:"르우벤, 시므온, 레위, 유다(레아), 단, 납달리(빌하), 갓, 아셀(실바), 잇사갈, 스불론(레아), 요셉(라헬) 순이에요.",h:"레아가 먼저 아들 넷을 낳았고, 그 뒤에 두 시녀의 아들들이 태어났어요.",
+  q:["창세기 29~30장에서 야곱의 아들들이 태어난 순서대로 놓으세요.","야곱의 아들들을 먼저 태어난 사람부터 순서대로 고르세요."],
+  seq:["르우벤","시므온","레위","유다","단","납달리","갓","아셀","잇사갈","스불론","요셉"]},
+ {type:"order",ref:"창세기 12:4; 17:5; 18:32; 19:26; 21:5; 22:2",ex:"하란을 떠남(12장), 이름이 아브라함으로 바뀜(17장), 소돔을 위한 간구(18장), 롯의 아내(19장), 이삭의 출생(21장), 모리아 땅(22장) 순이에요.",h:"이삭은 아브라함이 백 세일 때 태어났어요. 이름이 바뀐 건 그보다 앞이에요.",
+  q:["아브라함에게 있었던 일을 창세기의 순서대로 놓으세요.","창세기에서 아브라함의 이야기를 앞에 나오는 것부터 순서대로 고르세요."],
+  seq:["칠십오 세에 하란을 떠남","이름이 아브람에서 아브라함으로 바뀜","소돔을 위해 의인의 수를 줄여 가며 간구함","롯의 아내가 소금 기둥이 됨","백 세에 이삭을 얻음","이삭을 데리고 모리아 땅으로 감"]}
+];
+
+const NT=[
+ {ref:"마태복음 2:11",ex:"박사들은 보배합을 열어 황금과 유향과 몰약을 드렸어요.",h:"예물은 세 가지였어요. 하나는 귀금속이고, 둘은 향료예요.",
+  v:[["동방 박사들이 아기 예수께 드린 예물이 아닌 것은 무엇인가요?",["은","황금","유향","몰약"]],
+     ["동방 박사들의 예물을 바르게 짝지은 것은?",["황금 · 유향 · 몰약","황금 · 은 · 몰약","은 · 유향 · 몰약","황금 · 유향 · 향유","은 · 유향 · 향유","황금 · 몰약 · 향유"]]]},
+ {ref:"마태복음 1:17",ex:"아브라함부터 다윗까지, 다윗부터 바벨론 포로까지, 포로 이후부터 그리스도까지 각각 14대예요.",h:"세 시기의 대수는 모두 같아요.",
+  v:[["마태복음의 족보는 아브라함부터 그리스도까지를 세 시기로 나눕니다. 각 시기는 몇 대인가요?",["14대","12대","13대","16대","15대","11대"]],
+     ["마태복음 1장 족보에서 '다윗부터 바벨론으로 사로잡혀 갈 때까지'는 몇 대인가요?",["열네 대","열두 대","열세 대","열다섯 대","열여섯 대","열한 대"]]]},
+ {ref:"누가복음 1:5, 13",ex:"아버지는 제사장 사가랴, 어머니는 엘리사벳이에요.",h:"천사의 말을 믿지 못해 아들이 태어날 때까지 말을 하지 못한 제사장이에요.",
+  v:[["세례 요한의 아버지 이름은 무엇인가요?",["사가랴","시므온","엘가나","아론","요셉","가야바"]],
+     ["엘리사벳의 남편으로, 성전에서 천사에게 아들의 탄생 소식을 들은 제사장은 누구인가요?",["사가랴","시므온","요셉","니고데모","엘가나","가야바"]]]},
+ {ref:"누가복음 2:42-46",ex:"열두 살 때였고, 부모는 사흘 뒤에 성전에서 예수를 찾았어요.",h:"부모는 아들을 사흘 뒤에야 성전에서 찾았어요. 나이는 제자들의 수와 같아요.",
+  v:[["예수께서 부모와 함께 예루살렘에 올라갔다가 성전에 남아 선생들과 대화하신 것은 몇 살 때인가요?",["열두 살","열한 살","열세 살","열네 살","열 살","열다섯 살"]],
+     ["소년 예수께서 성전에서 선생들 가운데 앉아 묻고 대답하신 때의 나이는?",["열두 살","열 살","열세 살","열다섯 살","열한 살","열여섯 살"]]]},
+ {ref:"요한복음 2:1, 11",ex:"갈릴리 가나의 혼례에서 행하신 첫 표적이에요.",h:"혼례가 열린 곳이에요. 그 집에는 돌항아리 여섯이 놓여 있었어요.",
+  v:[["예수께서 물로 포도주를 만드신 첫 표적은 어디에서 일어났나요?",["갈릴리 가나","나사렛","가버나움","베다니","벳새다","나인"]],
+     ["요한복음에서 예수께서 '첫 표적'을 행하신 곳은 어디인가요?",["갈릴리 가나","예루살렘","여리고","벳새다","가버나움","수가"]]]},
+ {ref:"요한복음 3:1-2",ex:"니고데모는 바리새인이자 유대인의 지도자였고, 밤에 예수께 왔어요.",h:"훗날 예수의 장례 때 몰약과 침향 섞은 것을 백 리트라쯤 가져온 사람이에요.",
+  v:[["밤에 예수를 찾아와 거듭남에 대한 말씀을 들은 바리새인은 누구인가요?",["니고데모","아리마대 사람 요셉","가말리엘","삭개오","가야바","안나스"]],
+     ["요한복음 3장에서 밤에 예수께 와서 말씀을 들은 유대인의 지도자는 누구인가요?",["니고데모","가야바","가말리엘","빌라도","삭개오","안나스"]]]},
+ {ref:"마태복음 14:20-21",ex:"남은 조각을 열두 바구니에 가득 거두었어요.",h:"제자들의 수와 같아요.",
+  v:[["오병이어로 오천 명을 먹이신 뒤 남은 조각은 몇 바구니였나요?",["열두 바구니","일곱 바구니","열한 바구니","열세 바구니","열다섯 바구니","아홉 바구니"]],
+     ["떡 다섯 개와 물고기 두 마리로 오천 명을 먹이신 뒤 거둔 남은 조각은 얼마인가요?",["열두 바구니","열 바구니","일곱 바구니","열네 바구니","열한 바구니","다섯 바구니"]]]},
+ {ref:"마태복음 15:34-38",ex:"남은 조각을 일곱 광주리에 거두었어요. 오천 명을 먹이신 사건의 열두 바구니와 헷갈리기 쉬워요.",h:"처음에 있던 떡의 개수와 같은 수예요.",
+  v:[["떡 일곱 개와 작은 생선 두어 마리로 사천 명을 먹이신 뒤 남은 조각은 몇 광주리였나요?",["일곱 광주리","열두 광주리","여섯 광주리","아홉 광주리","다섯 광주리","열 광주리"]],
+     ["사천 명을 먹이신 기적에서 남은 조각을 거둔 그릇의 수는?",["일곱 광주리","여덟 광주리","열두 광주리","다섯 광주리","아홉 광주리","여섯 광주리"]]]},
+ {ref:"마태복음 17:1",ex:"베드로와 야고보와 그 형제 요한만 데리고 올라가셨어요.",h:"겟세마네에서도 따로 데려가신 '베드로와 세베대의 두 아들'이에요.",
+  v:[["예수께서 높은 산에 올라 변형되실 때 함께 데려가신 제자가 아닌 사람은 누구인가요?",["안드레","베드로","야고보","요한"]],
+     ["변화산에 예수와 함께 올라간 세 제자로 바른 것은?",["베드로 · 야고보 · 요한","베드로 · 안드레 · 요한","야고보 · 요한 · 빌립","베드로 · 야고보 · 안드레","베드로 · 요한 · 도마","야고보 · 요한 · 안드레"]]]},
+ {ref:"요한복음 11:17, 39",ex:"나사로는 무덤에 있은 지 이미 나흘이었고, 마르다도 죽은 지 나흘이 되었다고 말했어요.",h:"마르다는 냄새가 날 것이라며 무덤의 돌을 옮기는 것을 망설였어요.",
+  v:[["예수께서 베다니에 도착하셨을 때 나사로는 무덤에 있은 지 며칠째였나요?",["나흘","사흘","닷새","이틀","엿새","이레"]],
+     ["나사로의 무덤 앞에서 마르다가 오라비가 죽은 지 며칠이 되었다고 말했나요?",["나흘","사흘","엿새","이레","닷새","이틀"]]]},
+ {ref:"마태복음 26:15",ex:"대제사장들은 은 삼십을 달아 주었어요.",h:"요셉이 팔린 값(은 이십)보다 많아요.",
+  v:[["가룟 유다가 예수를 넘겨주는 대가로 대제사장들에게 받은 것은 무엇인가요?",["은 삼십","은 이십","은 삼십오","은 사십","은 이십오","은 오십"]],
+     ["대제사장들이 예수를 넘겨주는 대가로 유다에게 달아 준 것은 무엇인가요?",["은 서른","은 스물다섯","금 서른","은 서른다섯","은 마흔","은 스물"]]]},
+ {ref:"마태복음 27:32",ex:"군인들이 시몬이라는 구레네 사람을 만나 십자가를 억지로 지게 했어요.",h:"마가복음에서는 알렉산더와 루포의 아버지로 소개돼요.",
+  v:[["예수의 십자가를 억지로 지고 간 시몬은 어디 사람인가요?",["구레네","갈릴리","벳새다","다소","아리마대","가나"]],
+     ["골고다로 가는 길에 예수의 십자가를 억지로 지게 된 사람은 누구인가요?",["구레네 사람 시몬","시몬 베드로","아리마대 사람 요셉","가룟 유다","가나나인 시몬","니고데모"]]]},
+ {ref:"요한복음 21:11",ex:"그물에 가득 찬 큰 물고기가 153마리였는데도 그물이 찢어지지 않았어요.",h:"백 마리가 훨씬 넘었는데도 그물이 찢어지지 않았어요.",
+  v:[["부활하신 예수의 말씀대로 그물을 던진 제자들이 끌어 올린 큰 물고기는 몇 마리였나요?",["153마리","135마리","144마리","158마리","150마리","163마리"]],
+     ["디베랴 호수에서 제자들이 그물로 끌어 올린 큰 물고기의 수는?",["백쉰세 마리","백서른다섯 마리","백마흔네 마리","백쉰여덟 마리","백오십 마리","백예순세 마리"]]]},
+ {ref:"사도행전 1:23-26",ex:"요셉과 맛디아 두 사람을 세우고 제비를 뽑아 맛디아를 얻었어요.",h:"다른 후보는 바사바라고도 하고 별명이 유스도인 요셉이었어요.",
+  v:[["가룟 유다를 대신하여 제비를 뽑아 열한 사도와 함께 사도의 수에 든 사람은 누구인가요?",["맛디아","바사바라 하는 요셉","바나바","스데반","실라","바울"]],
+     ["사도행전 1장에서 가룟 유다의 자리를 채워 사도가 된 사람은 누구인가요?",["맛디아","바울","디모데","실라","바나바","스데반"]]]},
+ {ref:"사도행전 2:41",ex:"그날 신도의 수가 삼천이나 더해졌어요.",h:"사도행전 4장에서 믿는 남자의 수가 약 오천이 되었다는 기록과 헷갈리기 쉬워요.",
+  v:[["오순절에 베드로의 설교를 듣고 세례를 받아 더해진 신도는 약 몇 명인가요?",["삼천","오천","이천오백","삼천오백","사천","이천"]],
+     ["오순절 베드로의 설교가 있던 날, 세례를 받고 더해진 신도의 수는?",["삼천가량","오천가량","이천가량","사천가량","삼천오백가량","이천오백가량"]]]},
+ {ref:"사도행전 8:27, 38",ex:"빌립이 내시와 함께 물에 내려가 세례를 베풀었어요.",h:"스데반과 함께 택함을 받은 일곱 사람 가운데 한 명이에요.",
+  v:[["에디오피아 여왕 간다게의 국고를 맡은 내시에게 세례를 베푼 사람은 누구인가요?",["빌립","베드로","바울","고넬료","스데반","바나바"]],
+     ["가사로 내려가는 길에서 선지자 이사야의 글을 읽던 에디오피아 내시를 만나 세례를 준 사람은?",["빌립","베드로","스데반","바나바","바울","아나니아"]]]},
+ {ref:"사도행전 9:10, 17",ex:"주께서 환상 중에 아나니아를 보내셨고, 그가 직가 거리 유다의 집에 있던 사울에게 안수했어요.",h:"사도행전 5장에 같은 이름의 다른 사람이 나와요. 아내 삽비라와 함께 소유를 판 그 사람과는 다른 인물이에요.",
+  v:[["다메섹에서 눈이 먼 사울에게 찾아가 안수한 제자는 누구인가요?",["아나니아","바나바","실라","디모데","고넬료","아볼로"]],
+     ["주의 환상을 보고 직가라는 거리 유다의 집으로 사울을 찾아간 다메섹의 제자는?",["아나니아","고넬료","실라","아볼로","바나바","디모데"]]]},
+ {ref:"사도행전 13:2",ex:"성령께서 바나바와 사울을 따로 세우라고 하셨어요. 요한은 수행원으로 함께 갔어요.",h:"이름의 뜻이 '위로의 아들'이에요.",
+  v:[["안디옥 교회에서 성령께서 사울과 함께 따로 세워 보내라고 하신 사람은 누구인가요?",["바나바","실라","디모데","누가","마가","디도"]],
+     ["안디옥 교회에서 성령께서 따로 세우라고 하신 두 사람을 바르게 짝지은 것은?",["바나바와 사울","바울과 실라","베드로와 요한","바나바와 마가","사울과 마가","바나바와 실라"]]]},
+ {ref:"사도행전 16:14",ex:"루디아는 두아디라 시에서 온 자색 옷감 장사였어요.",h:"안식일에 빌립보 성문 밖 강가에서 바울의 말을 듣고 마음이 열린 사람이에요.",
+  v:[["빌립보에서 바울의 말을 듣고 세례를 받은 두아디라 출신 루디아는 무엇을 파는 사람이었나요?",["자색 옷감","천막","향품","세마포","감람유","포도주"]],
+     ["두아디라 시 출신의 자색 옷감 장사로, 빌립보에서 온 집과 함께 세례를 받은 여성은?",["루디아","브리스길라","뵈뵈","다비다","마리아","유니게"]]]},
+ {ref:"사도행전 16:25",ex:"바울과 실라가 기도하고 찬송하자 큰 지진이 나서 옥문이 열렸어요.",h:"바울이 바나바와 갈라선 뒤 택하여 함께 떠난 사람이에요.",
+  v:[["빌립보 감옥에서 바울과 함께 한밤중에 기도하고 찬송한 사람은 누구인가요?",["실라","바나바","디모데","마가","누가","디도"]],
+     ["빌립보 감옥에서 한밤중에 지진이 일어났을 때 바울과 함께 갇혀 있던 사람은?",["실라","누가","바나바","아볼로","디모데","마가"]]]},
+ {ref:"사도행전 18:2-3",ex:"본도 출신 유대인 아굴라와 그의 아내 브리스길라는 천막 만드는 일을 했어요.",h:"남편과 함께 아볼로를 데려다가 하나님의 도를 더 정확하게 풀어 준 사람이에요.",
+  v:[["바울과 같은 생업으로 함께 천막을 만든 아굴라의 아내는 누구인가요?",["브리스길라","루디아","뵈뵈","다비다","마리아","유니게"]],
+     ["본도 출신 아굴라와 함께 천막 만드는 일을 하며 바울과 함께 지낸 그의 아내는?",["브리스길라","루디아","마리아","유니게","뵈뵈","드루실라"]]]},
+ {ref:"사도행전 20:9-12",ex:"유두고가 떨어져 죽었으나 바울이 그를 안았고, 사람들은 살아난 청년을 데리고 갔어요.",h:"이름이 '유'로 시작해요.",
+  v:[["드로아에서 바울의 강론이 길어지자 창에 걸터앉아 졸다가 삼 층에서 떨어진 청년은 누구인가요?",["유두고","디모데","에바브로디도","오네시모","유스도","디도"]],
+     ["바울이 밤늦도록 강론할 때 창에서 떨어져 죽었다가 살아난 청년은 누구인가요?",["유두고","디도","유스도","오네시모","디모데","에바브로디도"]]]},
+ {ref:"사도행전 28:1",ex:"구조된 뒤에 그 섬이 멜리데라는 것을 알았어요.",h:"바울이 이 섬에서 독사에 물렸지만 조금도 상하지 않았어요.",
+  v:[["로마로 가던 배가 파선한 뒤 바울 일행이 구조되어 닿은 섬은 어디인가요?",["멜리데","구브로","그레데","밧모","로도","사모"]],
+     ["사도행전 28장, 파선한 배에서 구조된 바울 일행이 알게 된 섬의 이름은?",["멜리데","밧모","구브로","그레데","로도","사모"]]]},
+ {ref:"갈라디아서 5:22-23",ex:"성령의 열매는 사랑, 희락, 화평, 오래 참음, 자비, 양선, 충성, 온유, 절제예요.",h:"열매는 모두 아홉 가지이고, '사랑'으로 시작해 '절제'로 끝나요.",
+  v:[["갈라디아서에 나오는 성령의 열매가 아닌 것은 무엇인가요?",["지혜","양선","충성","절제","사랑","희락","화평","온유","자비","오래 참음"]],
+     ["다음 중 갈라디아서 5장의 성령의 열매에 들어가는 것은?",["온유","지혜","소망","겸손","지식","순종"]]]},
+ {ref:"요한계시록 3:14-16",ex:"라오디게아 교회는 미지근하여 입에서 토해 내치겠다는 책망을 받았어요.",h:"요한계시록 3장에서 마지막으로 나오는 교회예요.",
+  v:[["요한계시록에서 차지도 뜨겁지도 않고 미지근하다고 책망받은 교회는 어디인가요?",["라오디게아","에베소","사데","빌라델비아","서머나","버가모"]],
+     ["주님이 '차지도 아니하고 뜨겁지도 아니하다'고 책망하신 교회는 어디인가요?",["라오디게아","버가모","두아디라","서머나","에베소","사데"]]]},
+
+ // 새 객관식
+ {ref:"마태복음 2:16",ex:"헤롯은 베들레헴과 그 모든 지경 안에 있는 두 살부터 그 아래의 사내아이를 다 죽였어요.",h:"헤롯은 박사들에게 자세히 물은 때를 기준으로 삼았어요.",
+  v:[["헤롯이 베들레헴에서 죽이게 한 사내아이는 몇 살부터 그 아래였나요?",["두 살","세 살","한 살","다섯 살","일곱 살","네 살"]],
+     ["헤롯이 두 살부터 그 아래의 사내아이를 다 죽이게 한 곳은?",["베들레헴과 그 모든 지경","나사렛","예루살렘","애굽","가버나움","여리고"]]]},
+ {ref:"마태복음 3:4",ex:"세례 요한은 낙타털 옷을 입고 허리에 가죽 띠를 띠었으며, 메뚜기와 석청을 먹었어요.",h:"광야에서 구할 수 있는 것들이에요.",
+  v:[["세례 요한이 먹은 음식은?",["메뚜기와 석청","보리떡과 물고기","무화과와 꿀","만나와 메추라기","쥐엄 열매","떡과 포도주"]],
+     ["세례 요한이 입은 옷으로 기록된 것은?",["낙타털 옷과 가죽 띠","세마포 옷과 금띠","양털 옷과 베 띠","자색 옷","무늬 있는 옷","굵은 베옷과 재"]]]},
+ {ref:"마태복음 4:1-2",ex:"예수께서 성령에게 이끌려 광야로 가사 사십 일을 밤낮으로 금식하셨어요.",h:"모세와 엘리야의 기록에도 같은 날 수가 나와요.",
+  v:[["예수께서 광야에서 밤낮으로 금식하신 기간은?",["사십 일","삼십 일","사십오 일","이십일 일","칠 일","오십 일"]],
+     ["예수께서 사십 일을 금식하신 곳은 어디인가요?",["광야","감람산","겟세마네","요단 강가","갈릴리 바닷가","성전 꼭대기"]]]},
+ {ref:"마태복음 6:9-13",ex:"'너희는 이렇게 기도하라'로 시작하는 주기도문은 마태복음 6장 9~13절에 있어요.",h:"7장 끝에서 무리가 이 가르침에 놀랐다고 하는데, 그보다 한 장 앞이에요.",
+  v:[["주기도문이 기록된 곳은 마태복음 몇 장인가요?",["6장","5장","7장","4장","10장","18장"]],
+     ["마태복음 6장 9~13절에 기록된 것은 무엇인가요?",["주기도문","팔복","황금률","겨자씨 비유","소금과 빛의 말씀","씨 뿌리는 자의 비유"]]]},
+ {ref:"누가복음 19:2-4",ex:"삭개오는 세리장이요 부자였고, 키가 작아 앞으로 달려가 돌무화과나무에 올라갔어요.",h:"개역개정의 나무 이름을 떠올려 보세요. 열매 이름이 들어가요.",
+  v:[["개역개정 누가복음에서 삭개오가 예수를 보려고 올라간 나무는?",["돌무화과나무","뽕나무","감람나무","종려나무","백향목","상수리나무"]],
+     ["돌무화과나무에 올라간 삭개오의 직업은 무엇이었나요?",["세리장","바리새인","서기관","백부장","회당장","제사장"]]]},
+ {ref:"누가복음 10:31-35",ex:"제사장과 레위인은 피하여 지나갔고, 사마리아 사람은 그를 돌본 뒤 주막 주인에게 데나리온 둘을 주었어요.",h:"강도 만난 사람은 예루살렘에서 여리고로 내려가던 길이었어요.",
+  v:[["선한 사마리아 사람이 주막 주인에게 준 돈은?",["데나리온 둘","데나리온 하나","데나리온 셋","데나리온 다섯","은 삼십","한 므나"]],
+     ["강도 만난 사람을 보고도 피하여 지나간 두 사람은?",["제사장과 레위인","바리새인과 서기관","세리와 군인","제사장과 바리새인","레위인과 서기관","상인과 목자"]]]},
+ {ref:"누가복음 15:15-16",ex:"둘째 아들은 들에서 돼지를 쳤고, 돼지 먹는 쥐엄 열매로 배를 채우고자 했지만 주는 사람이 없었어요.",h:"유대인에게 부정한 짐승으로 여겨진 동물이에요.",
+  v:[["집을 떠난 둘째 아들이 먼 나라 들에서 친 짐승은?",["돼지","양","염소","소","나귀","낙타"]],
+     ["돼지를 치던 둘째 아들이 배를 채우고자 했던 것은?",["쥐엄 열매","메뚜기","무화과","보리 이삭","석청","상수리"]]]},
+ {ref:"요한복음 4:5-6, 18",ex:"예수께서는 사마리아 수가라는 동네의 야곱의 우물가에서 여인을 만나셨고, 그 여인에게 남편 다섯이 있었다고 하셨어요.",h:"우물의 이름은 '야곱의 우물'이에요.",
+  v:[["예수께서 사마리아 여인을 만나신 동네의 이름은?",["수가","나인","가나","엠마오","베다니","벳바게"]],
+     ["예수께서 사마리아 여인에게 남편이 몇 있었다고 하셨나요?",["다섯","셋","일곱","여섯","넷","둘"]]]},
+ {ref:"사도행전 2:2-3",ex:"하늘로부터 급하고 강한 바람 같은 소리가 있었고, 불의 혀처럼 갈라지는 것들이 각 사람 위에 임했어요.",h:"소리는 바람과, 보인 것은 불과 관련 있어요.",
+  v:[["오순절에 제자들 위에 보인 것은 무엇 같았나요?",["불의 혀처럼 갈라지는 것","비둘기 같은 것","구름 기둥","빛나는 별","흰 옷 입은 천사","무지개"]],
+     ["오순절에 하늘로부터 들린 소리는 무엇 같았나요?",["급하고 강한 바람 소리","나팔 소리","천둥 소리","많은 물 소리","비둘기 소리","세미한 소리"]]]},
+ {ref:"사도행전 17:16, 22",ex:"바울은 아덴에서 아레오바고 가운데 서서 말했어요.",h:"우상이 가득한 헬라의 도시예요.",
+  v:[["바울이 아덴에서 서서 말한 곳은?",["아레오바고","솔로몬 행각","두란노 서원","고린도 회당","에베소 연극장","빌립보 강가"]],
+     ["바울이 아레오바고 가운데 서서 말한 도시는?",["아덴","고린도","에베소","빌립보","데살로니가","베뢰아"]]]},
+ {ref:"사도행전 22:3",ex:"바울은 길리기아 다소에서 났고, 예루살렘에서 가말리엘의 문하에서 율법의 엄한 교훈을 받았다고 했어요.",h:"사도행전 5장에서 사도들을 놓아 주자고 권한 바리새인과 같은 이름이에요.",
+  v:[["바울이 율법의 교훈을 받았다고 말한 스승은?",["가말리엘","니고데모","가야바","안나스","아나니아","바나바"]],
+     ["바울이 자신이 태어났다고 말한 곳은?",["길리기아 다소","예루살렘","다메섹","안디옥","로마","갈릴리 나사렛"]]]},
+ {ref:"요한계시록 1:9",ex:"요한은 하나님의 말씀과 예수를 증언한 일로 밧모라 하는 섬에 있었어요.",h:"바울이 파선했던 섬과는 다른 곳이에요.",
+  v:[["요한이 계시를 받을 때 있던 섬은?",["밧모","멜리데","구브로","그레데","사모","로도"]],
+     ["요한이 밧모 섬에 있게 된 이유로 본문이 밝힌 것은?",["하나님의 말씀과 예수를 증언한 일","배가 파선한 일","전도 여행 중 쉬려고","로마로 가는 길이어서","병을 고치려고","다른 사도를 찾으려고"]]]},
+ {ref:"마태복음 16:13",ex:"예수께서 빌립보 가이사랴 지방에 이르러 제자들에게 사람들이 인자를 누구라 하는지 물으셨어요.",h:"이름에 바울 서신의 이름이 된 도시와 로마 황제의 칭호가 함께 들어 있어요.",
+  v:[["예수께서 제자들에게 '사람들이 인자를 누구라 하느냐' 물으신 지방은?",["빌립보 가이사랴","가버나움","갈릴리 가나","데가볼리","두로와 시돈","벳새다"]],
+     ["빌립보 가이사랴 지방에서 예수께서 제자들에게 물으신 것은?",["사람들이 인자를 누구라 하는지","떡이 몇 개 있는지","누가 가장 큰지","세금을 바쳐야 하는지","성전이 언제 무너지는지","무엇을 구하는지"]]]},
+ {ref:"마태복음 27:45-46",ex:"제육시부터 온 땅에 어둠이 임하여 제구시까지 계속되었고, 제구시쯤에 예수께서 크게 소리 지르셨어요.",h:"어둠은 세 시간 동안 이어졌어요.",
+  v:[["예수께서 십자가에 달리셨을 때 온 땅의 어둠은 제육시부터 몇 시까지 계속되었나요?",["제구시","제칠시","제팔시","제십시","제십이시","제삼시"]],
+     ["예수께서 '엘리 엘리 라마 사박다니' 하고 크게 소리 지르신 때는?",["제구시쯤","제육시쯤","제삼시쯤","제십이시쯤","새벽 닭 울 때","해 질 무렵"]]]},
+ {ref:"마가복음 5:42",ex:"소녀가 곧 일어나서 걸었고, 나이는 열두 살이었어요.",h:"같은 장에서 열두 해 동안 혈루증을 앓던 여인 이야기가 함께 나와요.",
+  v:[["예수께서 살리신 회당장 야이로의 딸의 나이는?",["열두 살","열 살","열네 살","열한 살","일곱 살","열다섯 살"]],
+     ["마가복음 5장에서 예수께서 '달리다굼' 하시자 일어난 소녀는 누구의 딸인가요?",["회당장 야이로","백부장","나인 성 과부","가나안 여자","베드로의 장모","세리 마태"]]]},
+
+ // 본문 링크 문제
+ {type:"verse",l:["mat",1,23],ref:"마태복음 1:23",q:"이 구절에서 '임마누엘'은 어떤 뜻으로 번역되어 있나요?",
+  a:["하나님이 우리와 함께 계시다","하나님은 구원이시다","평강의 왕","기묘자라 모사라","하나님의 어린 양","주께서 오신다"],ex:"임마누엘은 번역하면 하나님이 우리와 함께 계시다는 뜻이라고 본문이 풀어 줘요.",h:"구절 끝부분에 번역이 함께 나와요."},
+ {type:"verse",l:["mat",16,16],ref:"마태복음 16:16",q:"이 구절에서 예수께 '그리스도시요 살아 계신 하나님의 아들'이라고 고백한 사람은 누구인가요?",
+  a:["시몬 베드로","안드레","요한","도마","빌립","나다나엘"],ex:"빌립보 가이사랴 지방에서 시몬 베드로가 대답했어요.",h:"15절에서 예수께서 제자들에게 물으셨어요."},
+ {type:"verse",l:["mat",27,46],ref:"마태복음 27:46",q:"이 구절에서 예수께서 외치신 '엘리 엘리 라마 사박다니'의 뜻으로 맞는 것은?",
+  a:["하나님께 어찌하여 나를 버리셨느냐고 부르짖음","다 이루었다고 말씀하심","영혼을 아버지 손에 부탁하심","저들을 사하여 달라고 비심","목마르다고 말씀하심","오늘 낙원에 있으리라 하심"],ex:"본문은 이 말이 나의 하나님을 부르며 어찌하여 나를 버리셨느냐고 묻는 뜻이라고 풀어 줘요.",h:"구절 안에 뜻풀이가 함께 나와요."},
+ {type:"verse",l:["mrk",3,17],ref:"마가복음 3:17",q:"이 구절에서 예수께서 야고보와 요한에게 더해 주신 이름 '보아너게'의 뜻은?",
+  a:["우레의 아들","위로의 아들","반석","오른손의 아들","슬픔의 아들","평강의 아들"],ex:"보아너게 곧 우레의 아들이란 이름을 더하셨다고 기록되어 있어요.",h:"이름 바로 뒤에 '곧'으로 뜻이 이어져요."},
+ {type:"verse",l:["mrk",5,41],ref:"마가복음 5:41",q:"이 구절에서 예수께서 하신 말씀 '달리다굼'의 뜻은?",
+  a:["소녀야 일어나라","에바다, 열려라","평안히 가라","내가 원하노니 깨끗하라","네 죄 사함을 받았느니라","나사로야 나오라"],ex:"달리다굼은 번역하면 소녀야 일어나라는 뜻이라고 본문이 풀어 줘요.",h:"아이의 손을 잡고 하신 말씀이에요."},
+ {type:"verse",l:["luk",15,32],ref:"누가복음 15:32",q:"이 구절에서 아버지가 맏아들에게 말한 '이 네 동생'은 누구인가요?",
+  a:["집을 떠났다가 돌아온 둘째 아들","아버지의 품꾼","돼지를 치게 한 먼 나라 사람","살진 송아지를 잡은 종","맏아들과 함께 즐긴 친구","잔치에 온 이웃"],ex:"재산을 가지고 떠났다가 돌아온 둘째 아들을 두고, 죽었다가 살아났고 잃었다가 얻었다고 말해요.",h:"11절부터 시작하는 비유의 마지막 절이에요."},
+ {type:"verse",l:["jhn",1,41],ref:"요한복음 1:41",q:"이 구절에서 '메시야'를 번역한 말은 무엇인가요?",
+  a:["그리스도","선생","랍비","베드로","임마누엘","주"],ex:"본문의 괄호에 메시야는 번역하면 그리스도라고 나와요. 38절에서는 랍비를 번역하면 선생이라고 해요.",h:"구절 안 괄호를 보세요."},
+ {type:"verse",l:["jhn",1,42],ref:"요한복음 1:42",q:"이 구절에서 예수께서 시몬에게 주신 이름 '게바'를 번역한 이름은?",
+  a:["베드로","시몬","디두모","보아너게","안드레","요나"],ex:"게바는 번역하면 베드로라고 본문 괄호에 나와요.",h:"구절 안 괄호를 보세요."},
+ {type:"verse",l:["jhn",11,16],ref:"요한복음 11:16",q:"이 구절에서 도마를 부르는 다른 이름은 무엇인가요?",
+  a:["디두모","게바","다대오","바돌로매","보아너게","유스도"],ex:"디두모라고도 하는 도마가 다른 제자들에게 말했다고 기록되어 있어요.",h:"도마라는 이름 바로 앞에 나와요."},
+ {type:"verse",l:["act",9,36],ref:"사도행전 9:36",q:"이 구절에서 욥바의 여제자 '다비다'를 번역한 이름은?",
+  a:["도르가","뵈뵈","루디아","마리아","삽비라","유니게"],ex:"다비다는 번역하면 도르가라고 본문에 나와요. 베드로가 기도한 뒤 그를 살렸어요.",h:"이름 바로 뒤 괄호를 보세요."},
+ {type:"verse",l:["act",17,23],ref:"사도행전 17:23",q:"이 구절에서 바울이 아덴에서 본 단에 새겨진 글은?",
+  a:["알지 못하는 신에게","하늘의 여왕에게","아덴의 수호신에게","만물의 근원에게","가이사에게","바다의 신에게"],ex:"바울은 알지 못하는 신에게라고 새긴 단을 보았고, 그 알지 못하고 위하는 것을 알게 하겠다고 했어요.",h:"바울은 이 글귀를 실마리로 말씀을 전했어요."},
+ {type:"verse",l:["jhn",4,18],ref:"요한복음 4:18",q:"이 구절은 누구와 나누신 대화 중에 나온 말씀인가요?",
+  a:["수가 동네 우물가의 사마리아 여인","밤에 찾아온 니고데모","베다니의 마르다","가나 혼례의 어머니 마리아","여리고의 세리장 삭개오","간음하다 잡힌 여인"],ex:"예수께서 사마리아 수가 동네 야곱의 우물가에서 만나신 여인에게 하신 말씀이에요.",h:"같은 장 5~7절에 장소와 상대가 나와요."},
+
+ // 모두 고르기
+ {type:"multi",ref:"마태복음 10:2-4",ex:"열두 사도는 베드로, 안드레, 세베대의 아들 야고보, 요한, 빌립, 바돌로매, 도마, 마태, 알패오의 아들 야고보, 다대오, 가나나인 시몬, 가룟 유다예요.",h:"명단은 베드로와 안드레로 시작해 가룟 유다로 끝나요.",
+  q:["마태복음 10장의 열두 사도 명단에 있는 사람을 모두 고르세요.","예수께서 부르신 열두 사도에 해당하는 사람을 모두 고르세요."],
+  yes:["안드레","빌립","바돌로매","도마","다대오","가나나인 시몬"],no:["바나바","스데반","니고데모","디모데"]},
+ {type:"multi",ref:"로마서·빌립보서·디도서·빌레몬서·야고보서·유다서·베드로전서 1:1",ex:"로마서, 빌립보서, 디도서, 빌레몬서는 1장 1절에 바울이 나와요. 야고보서는 야고보, 유다서는 유다, 베드로전서는 베드로가 보낸 사람으로 나와요.",h:"책 이름이 받는 사람이나 교회의 이름인지, 보내는 사람의 이름인지 생각해 보세요.",
+  q:["1장 1절에서 보내는 사람으로 '바울'이 나오는 서신을 모두 고르세요.","첫 절에 보내는 사람이 바울이라고 밝힌 서신을 모두 고르세요."],
+  yes:["로마서","빌립보서","디도서","빌레몬서"],no:["야고보서","유다서","베드로전서"]},
+ {type:"multi",ref:"요한계시록 2~3장",ex:"일곱 교회는 에베소, 서머나, 버가모, 두아디라, 사데, 빌라델비아, 라오디게아예요.",h:"일곱 교회 가운데 바울 서신의 이름과 같은 곳은 에베소 하나뿐이에요.",
+  q:["요한계시록 2~3장에서 말씀을 받은 일곱 교회에 속하는 곳을 모두 고르세요.","요한계시록의 일곱 교회에 해당하는 곳을 모두 고르세요."],
+  yes:["에베소","서머나","버가모","두아디라","사데","빌라델비아","라오디게아"],no:["고린도","빌립보","안디옥","데살로니가"]},
+ {type:"multi",ref:"사도행전 3:6-7; 9:34, 40; 10장",ex:"미문의 걷지 못하는 사람, 애니아, 다비다, 고넬료의 집은 베드로의 이야기예요. 루스드라, 엘루마, 점치는 여종, 유두고는 바울의 이야기예요.",h:"베드로의 일은 사도행전 3장, 9장, 10장에 나와요. 나머지는 13장 이후의 일이에요.",
+  q:["사도행전에서 베드로가 한 일을 모두 고르세요.","다음 중 사도행전에 기록된 베드로의 일에 해당하는 것을 모두 고르세요."],
+  yes:["성전 미문의 걷지 못하는 사람을 일으킴","룻다의 중풍병자 애니아를 고침","욥바의 다비다를 살림","고넬료의 집에서 말씀을 전함"],
+  no:["루스드라의 걷지 못하는 사람을 일으킴","마술사 엘루마를 눈멀게 함","점치는 귀신 들린 여종에게서 귀신을 쫓아냄","창에서 떨어진 유두고를 내려가 안음"]},
+ {type:"multi",ref:"요한복음 11장; 누가복음 7:11-15; 8:41-55",ex:"예수께서는 나사로, 야이로의 딸, 나인 성 과부의 아들을 살리셨어요. 다비다는 베드로, 사르밧 과부의 아들은 엘리야, 수넴 여인의 아들은 엘리사가 살렸어요.",h:"구약과 사도행전에도 죽은 사람이 살아난 이야기가 있어요. 그건 예수께서 하신 일이 아니에요.",
+  q:["복음서에서 예수께서 죽은 사람을 살리신 경우를 모두 고르세요.","예수께서 직접 살리신 사람에 해당하는 것을 모두 고르세요."],
+  yes:["베다니의 나사로","회당장 야이로의 딸","나인 성 과부의 아들"],no:["욥바의 다비다","사르밧 과부의 아들","수넴 여인의 아들"]},
+ {type:"multi",ref:"사도행전 6:5",ex:"택함을 받은 일곱 사람은 스데반, 빌립, 브로고로, 니가노르, 디몬, 바메나, 니골라예요.",h:"첫 번째로 이름이 나오는 사람은 믿음과 성령이 충만한 스데반이에요.",
+  q:["사도행전 6장에서 택한 일곱 사람에 해당하는 사람을 모두 고르세요.","예루살렘 교회가 구제를 위해 세운 일곱 사람을 모두 고르세요."],
+  yes:["스데반","빌립","브로고로","니가노르","디몬","바메나","니골라"],no:["바나바","실라","디모데","맛디아"]},
+
+ // 순서 배열
+ {type:"order",ref:"마태복음 26:26-27:32",ex:"만찬(26:26), 겟세마네(26:36), 잡히심(26:47), 가야바에게(26:57), 베드로의 부인(26:69), 빌라도에게(27:2), 바라바(27:16-26), 구레네 사람 시몬(27:32) 순이에요.",h:"잡히신 뒤 먼저 대제사장 가야바에게, 그다음 빌라도에게 가셨어요.",
+  q:["마태복음에 기록된 예수의 마지막 때 일을 순서대로 놓으세요.","마태복음 26~27장의 사건을 일어난 순서대로 고르세요."],
+  seq:["떡을 떼어 제자들에게 주심","겟세마네에서 기도하심","유다의 입맞춤과 함께 잡히심","대제사장 가야바에게 끌려가심","베드로가 세 번 부인함","빌라도에게 넘겨지심","바라바가 놓임","구레네 사람 시몬이 십자가를 짐"]},
+ {type:"order",ref:"누가복음 1:11-2:46",ex:"사가랴에게 천사(1:11), 마리아에게 가브리엘(1:26), 엘리사벳 방문(1:39), 요한 출생(1:57), 예수 탄생(2:7), 목자들(2:16), 시므온(2:28), 열두 살 성전(2:46) 순이에요.",h:"세례 요한이 예수보다 먼저 태어났어요.",
+  q:["누가복음 1~2장의 사건을 일어난 순서대로 놓으세요.","세례 요한과 예수의 탄생 무렵 일을 누가복음의 순서대로 고르세요."],
+  seq:["천사가 사가랴에게 나타남","가브리엘이 마리아에게 나타남","마리아가 엘리사벳을 찾아감","세례 요한이 태어남","예수께서 태어나 구유에 누이심","목자들이 찾아옴","시므온이 아기 예수를 안음","열두 살 예수께서 성전에 남으심"]},
+ {type:"order",ref:"사도행전 7:58; 9:17; 10장; 13:2; 15:6; 16:25; 20:9; 28:1",ex:"스데반의 죽음(7장), 아나니아의 안수(9장), 고넬료의 집(10장), 바나바와 사울 파송(13장), 예루살렘 회의(15장), 빌립보 감옥(16장), 유두고(20장), 멜리데(28장) 순이에요.",h:"스데반이 죽을 때, 증인들은 사울이라는 청년의 발 앞에 옷을 두었어요.",
+  q:["사도행전의 사건을 일어난 순서대로 놓으세요.","사도행전에 기록된 일을 앞에 나오는 것부터 순서대로 고르세요."],
+  seq:["스데반이 돌에 맞아 죽음","아나니아가 다메섹에서 사울에게 안수함","베드로가 고넬료의 집에서 말씀을 전함","안디옥 교회가 바나바와 사울을 따로 세움","예루살렘에서 사도와 장로들이 모여 의논함","바울과 실라가 빌립보 감옥에서 찬송함","유두고가 창에서 떨어짐","바울 일행이 멜리데 섬에 닿음"]},
+ {type:"order",ref:"신약 목차",ex:"사도행전, 로마서, 고린도전서, 고린도후서, 갈라디아서, 에베소서, 빌립보서, 골로새서 순이에요.",h:"로마서 다음에는 고린도전서와 고린도후서가 이어져요.",
+  q:["신약 성경에 실린 책의 순서대로 놓으세요.","성경 목차에서 앞에 나오는 신약의 책부터 순서대로 고르세요."],
+  seq:["사도행전","로마서","고린도전서","고린도후서","갈라디아서","에베소서","빌립보서","골로새서"]},
+ {type:"order",ref:"요한계시록 2:1-3:22",ex:"에베소, 서머나, 버가모, 두아디라(2장), 사데, 빌라델비아, 라오디게아(3장) 순이에요.",h:"에베소가 첫 번째예요. 2장에 네 교회, 3장에 세 교회가 나와요.",
+  q:["요한계시록의 일곱 교회를 말씀이 주어진 순서대로 놓으세요.","요한계시록 2~3장에 나오는 교회를 앞에 나오는 것부터 순서대로 고르세요."],
+  seq:["에베소","서머나","버가모","두아디라","사데","빌라델비아","라오디게아"]},
+ {type:"order",ref:"마태복음 3:16; 4:2; 6:9; 14:20; 15:37; 16:13; 17:1",ex:"요단 강 세례(3장), 광야 금식(4장), 기도를 가르치심(6장), 오천 명(14장), 사천 명(15장), 빌립보 가이사랴(16장), 높은 산의 변형(17장) 순이에요.",h:"오천 명을 먹이신 일이 사천 명을 먹이신 일보다 먼저 나와요.",
+  q:["마태복음에 기록된 예수의 일을 나오는 순서대로 놓으세요.","마태복음 3~17장의 사건을 앞에 나오는 것부터 순서대로 고르세요."],
+  seq:["요단 강에서 세례를 받으심","광야에서 사십 일을 금식하심","'이렇게 기도하라'며 기도를 가르치심","오천 명을 먹이심","사천 명을 먹이심","빌립보 가이사랴에서 제자들에게 물으심","높은 산에서 변형되심"]}
+];
+/* 초안 가운데 새 본문으로 만든 문제만 남김 */
+const OT2=[{"type":"multi","ref":"출애굽기 20:3-17","ex":"십계명은 다른 신, 우상, 이름을 망령되게 부름, 안식일, 부모 공경, 살인, 간음, 도둑질, 거짓 증거, 탐심에 관한 계명이에요.","h":"하나님에 관한 계명 넷, 사람에 관한 계명 여섯이에요.","q":"출애굽기 20장 십계명에 들어 있는 것을 모두 고르세요.","yes":["다른 신들을 두지 말라","우상을 만들지 말라","여호와의 이름을 망령되게 부르지 말라","안식일을 기억하여 거룩하게 지키라","부모를 공경하라","살인하지 말라","간음하지 말라","도둑질하지 말라","거짓 증거하지 말라","이웃의 것을 탐내지 말라"],"no":["원수를 사랑하라","하루 세 번 기도하라","할례를 행하라","금식하라"]},
+{"type":"multi","ref":"창세기 30:6-13","ex":"라헬의 시녀 빌하는 단과 납달리를, 레아의 시녀 실바는 갓과 아셀을 낳았어요.","h":"시녀들의 아들은 모두 넷이에요.","q":"야곱의 아들 가운데 시녀 빌하와 실바가 낳은 아들을 모두 고르세요.","yes":["단","납달리","갓","아셀"],"no":["르우벤","레위","유다","잇사갈","스불론","요셉"]},
+{"type":"multi","ref":"사사기 3:9, 15, 31; 4:4; 6:11; 11:1; 13:24","ex":"사사기에는 옷니엘, 에훗, 삼갈, 드보라, 기드온, 입다, 삼손 등이 나와요.","h":"여선지자도 한 명 들어 있어요.","q":"사사기에 이스라엘의 구원자(사사)로 나오는 사람을 모두 고르세요.","yes":["옷니엘","에훗","삼갈","드보라","기드온","입다","삼손"],"no":["엘리야","나단","다니엘","이사야"]},
+{"type":"multi","ref":"출애굽기 15:20; 사사기 4:4","ex":"미리암은 아론의 누이 선지자, 드보라는 랍비돗의 아내 여선지자로 소개돼요.","h":"한 사람은 홍해를 건넌 뒤, 한 사람은 사사 시대에 나와요.","q":"본문에서 '선지자' 또는 '여선지자'로 소개된 여인을 모두 고르세요.","yes":["미리암","드보라"],"no":["라합","룻","에스더","레아"]},
+{"type":"multi","ref":"창세기 41:42-45","ex":"바로는 인장 반지, 세마포 옷, 금 사슬, 버금 수레를 주었고, 사브낫바네아라는 이름과 아내 아스낫을 주었어요.","h":"손, 몸, 목에 걸치는 것과 탈 것이 있어요.","q":"바로가 요셉에게 준 것을 모두 고르세요.","yes":["인장 반지","세마포 옷","금 사슬","버금 수레","사브낫바네아라는 이름","아내 아스낫"],"no":["왕관","지팡이","은 이십","포도원"]},
+{"type":"multi","ref":"열왕기상 3:9-11","ex":"솔로몬은 듣는 마음을 구했고, 하나님은 그가 장수와 부와 원수의 생명을 구하지 않았다고 하셨어요.","h":"솔로몬이 실제로 구한 것은 백성을 재판할 마음이에요.","q":"하나님이 '솔로몬이 구하지 않았다'고 하신 것을 모두 고르세요.","yes":["자기를 위한 장수","부","원수의 생명"],"no":["백성을 재판할 듣는 마음","선악을 분별하는 것"]},
+{"type":"multi","ref":"사사기 6:11; 7:7","ex":"기드온은 아비에셀 사람 요아스의 아들이고, 삼백 명으로 미디안을 이기게 하신다는 말씀을 받았어요.","h":"길르앗 사람은 입다, 마노아의 아들은 삼손이에요.","q":"기드온에 대한 설명으로 맞는 것을 모두 고르세요.","yes":["요아스의 아들","아비에셀 사람","삼백 명으로 미디안을 침"],"no":["길르앗 사람","마노아의 아들","왼손잡이","레히에서 블레셋과 싸움"]},
+{"type":"multi","ref":"룻기 1:1-4; 4:13-17","ex":"룻기에는 엘리멜렉과 나오미, 두 아들 말론과 기룐, 며느리 오르바와 룻, 보아스, 오벳이 나와요.","h":"나오미의 가족과 보아스의 집안을 떠올려 보세요.","q":"룻기에 나오는 사람을 모두 고르세요.","yes":["나오미","엘리멜렉","말론","기룐","오르바","보아스","오벳"],"no":["한나","엘가나","미갈","라합"]},
+{"type":"multi","ref":"사무엘상 1:1-3, 20","ex":"사무엘상 1장에는 엘가나와 두 아내 한나와 브닌나, 실로의 제사장 엘리와 두 아들 홉니와 비느하스가 나와요.","h":"한 남편과 두 아내, 한 제사장과 두 아들이 나와요.","q":"사무엘상 1장에 나오는 사람을 모두 고르세요.","yes":["엘가나","한나","브닌나","엘리","홉니","비느하스"],"no":["나오미","이새","기스","미갈"]},
+{"type":"order","ref":"출애굽기 20:3-17","ex":"다른 신, 우상, 이름, 안식일, 부모, 살인, 간음, 도둑질, 거짓 증거, 탐심 순이에요.","h":"하나님에 관한 계명이 먼저, 사람에 관한 계명이 나중에 나와요.","q":"출애굽기 20장 십계명을 본문 순서대로 놓으세요.","seq":["다른 신들을 두지 말라","우상을 만들지 말라","이름을 망령되게 부르지 말라","안식일을 지키라","부모를 공경하라","살인하지 말라","간음하지 말라","도둑질하지 말라","거짓 증거하지 말라","탐내지 말라"]},
+{"type":"order","ref":"출애굽기 7~10장","ex":"피, 개구리, 이, 파리, 가축의 죽음, 악성 종기, 우박, 메뚜기, 흑암 순이에요.","h":"물에서 시작해 어둠으로 끝나요.","q":"애굽에 내린 재앙을 일어난 순서대로 놓으세요.","seq":["물이 피가 됨","개구리","이","파리","가축의 죽음","악성 종기","우박","메뚜기","흑암"]},
+{"type":"order","ref":"열왕기상 17~19장; 열왕기하 2장","ex":"까마귀(왕상 17), 사르밧 과부의 아들(17), 갈멜 산(18), 로뎀 나무(19:4), 호렙(19:8), 회오리바람(왕하 2) 순이에요.","h":"까마귀가 엘리야를 먹인 일이 가장 먼저예요.","q":"엘리야에게 있었던 일을 순서대로 놓으세요.","seq":["까마귀가 떡과 고기를 가져옴","사르밧 과부의 아들을 살림","갈멜 산에서 바알 선지자와 대결함","로뎀 나무 아래에서 죽기를 구함","사십 주야를 걸어 호렙에 이름","회오리바람으로 하늘에 올라감"]},
+{"type":"order","ref":"사무엘상 1:3, 20; 3:5, 10; 9:1-2; 17:40","ex":"엘리의 아들들(1:3), 사무엘 출생(1:20), 엘리에게 달려감(3:5), '말씀하옵소서'(3:10), 사울 소개(9장), 다윗의 돌 다섯(17장) 순이에요.","h":"사무엘이 태어난 뒤 사울이, 그 뒤에 다윗이 나와요.","q":"사무엘상의 사건을 나오는 순서대로 놓으세요.","seq":["엘리의 두 아들이 실로에서 제사장으로 있음","한나가 사무엘을 낳음","사무엘이 엘리에게 달려감","사무엘이 주의 종이 듣겠다고 대답함","베냐민 사람 기스의 아들 사울이 소개됨","다윗이 시내에서 돌 다섯을 고름"]},
+{"type":"order","ref":"삼상 17:40; 삼하 12:7; 왕상 1:34; 3:9; 6:38; 12:20","ex":"골리앗 앞의 다윗, 나단의 책망, 솔로몬의 기름 부음, 듣는 마음, 성전 칠 년, 여로보암 순이에요.","h":"솔로몬은 왕이 된 뒤에 듣는 마음을 구했어요.","q":"다윗부터 나라가 나뉠 때까지의 일을 순서대로 놓으세요.","seq":["다윗이 시내에서 돌 다섯을 고름","나단이 다윗을 비유로 책망함","사독과 나단이 솔로몬에게 기름을 부음","솔로몬이 듣는 마음을 구함","솔로몬이 칠 년 동안 성전을 지음","이스라엘이 여로보암을 왕으로 삼음"]},
+{"type":"order","ref":"창세기 37:28; 41:26, 45-46, 51","ex":"팔림(37장), 꿈 풀이(41:26), 새 이름과 아내(41:45), 서른 살에 바로 앞(41:46), 므낫세 출생(41:51) 순이에요.","h":"꿈을 풀이한 뒤에 새 이름을 받았어요.","q":"요셉에게 있었던 일을 순서대로 놓으세요.","seq":["은 이십에 팔림","바로의 꿈을 풀이함","사브낫바네아라는 이름을 받음","서른 살에 바로 앞에 섬","맏아들 므낫세를 낳음"]},
+{"type":"order","ref":"창세기 25:34; 29:20, 23; 30:6; 32:28; 35:18","ex":"팥죽(25장), 칠 년 섬김(29:20), 레아와 결혼(29:23), 단의 출생(30:6), 이스라엘 이름(32:28), 베냐민 출생(35:18) 순이에요.","h":"칠 년을 채운 뒤 먼저 레아와 결혼하게 돼요.","q":"야곱에게 있었던 일을 순서대로 놓으세요.","seq":["에서에게 떡과 팥죽을 줌","라헬을 위해 칠 년을 섬김","레아와 먼저 결혼하게 됨","빌하가 단을 낳음","이스라엘이라는 이름을 받음","라헬이 베냐민을 낳고 죽음"]},
+{"type":"order","ref":"창세기 1; 2:17; 3:15; 5:3; 6:15; 11:9; 12:4","ex":"창조(1장), 먹지 말라 하신 나무(2장), 뱀에게 하신 말씀(3장), 셋의 출생(5장), 방주(6장), 바벨(11장), 하란을 떠남(12장) 순이에요.","h":"방주 이야기는 바벨탑보다 먼저 나와요.","q":"창세기 앞부분의 사건을 나오는 순서대로 놓으세요.","seq":["엿새 동안 천지를 창조하심","선악을 알게 하는 나무의 열매를 먹지 말라 하심","뱀에게 원수가 되게 하리라 말씀하심","아담이 셋을 낳음","방주의 치수를 알려 주심","바벨에서 언어가 혼잡하게 됨","아브람이 하란을 떠남"]},
+{"type":"order","ref":"출애굽기 14; 15:20, 23; 16:15; 20; 24:18; 32:4","ex":"바다를 건넘, 미리암의 소고, 마라, 만나, 십계명, 모세의 사십 일, 금 송아지 순이에요.","h":"마라의 쓴 물은 미리암이 소고를 잡은 뒤의 일이에요.","q":"바다를 건넌 뒤 광야에서 있었던 일을 순서대로 놓으세요.","seq":["바다 가운데를 마른 땅으로 건넘","미리암이 소고를 잡음","마라에서 쓴 물을 만남","만나가 내림","십계명을 주심","모세가 산에서 사십 일 사십 야를 지냄","아론이 금 송아지를 만듦"]},
+{"type":"order","ref":"삿 4:4; 6:11; 11:1; 13:24; 룻 1:14; 4:17; 삼상 1:3","ex":"드보라, 기드온, 입다, 삼손, 룻기, 사무엘상 순이에요.","h":"룻기는 사사기와 사무엘상 사이에 있어요.","q":"성경에 나오는 순서대로 놓으세요.","seq":["드보라가 사사가 됨","여호와의 사자가 기드온을 부름","길르앗 사람 입다가 나옴","마노아의 아내가 삼손을 낳음","오르바는 돌아가고 룻은 나오미를 따름","룻이 오벳을 낳음","엘리의 아들들이 실로에서 제사장으로 있음"]},
+{"type":"order","ref":"창 5:3, 24, 27, 31; 12:4; 21:5; 41:46; 수 14:10","ex":"요셉 30세, 아브람 75세, 갈렙 85세, 아브라함 100세, 아담 130세, 에녹 365년, 라멕 777세, 므두셀라 969세예요.","h":"족장들의 나이 가운데 므두셀라가 가장 많아요.","q":"본문에 기록된 나이(햇수)가 적은 것부터 순서대로 놓으세요.","seq":["요셉이 바로 앞에 설 때","아브람이 하란을 떠날 때","갈렙이 헤브론을 구할 때","이삭이 태어날 때 아브라함","아담이 셋을 낳을 때","에녹이 세상에 있은 햇수","라멕이 산 햇수","므두셀라가 산 햇수"]},
+{"type":"order","ref":"룻기 1:1-4, 14, 16; 4:17","ex":"모압으로 감, 오르바가 돌아감, 룻의 고백, 오벳의 출생 순이에요.","h":"이야기는 흉년에 모압으로 가는 데서 시작해요.","q":"룻기의 사건을 순서대로 놓으세요.","seq":["엘리멜렉의 가족이 모압 지방으로 감","오르바가 시어머니에게 입 맞추고 떠남","룻이 어머니께서 가시는 곳에 가겠다고 함","룻이 보아스에게서 오벳을 낳음"]},
+{"type":"match","ref":"창 17:15; 룻 4:13; 삿 4:4; 창 41:45; 삼상 1:2; 룻 1:2","ex":"아브라함의 아내는 사라, 보아스는 룻, 랍비돗은 드보라, 요셉은 아스낫, 엘가나는 한나, 엘리멜렉은 나오미예요.","h":"드보라는 '랍비돗의 아내'로 소개돼요.","q":"남편과 아내를 바르게 짝지으세요.","L":"남편","R":"아내","pairs":[["아브라함","사라"],["보아스","룻"],["랍비돗","드보라"],["요셉","아스낫"],["엘가나","한나"],["엘리멜렉","나오미"]]},
+{"type":"match","ref":"사사기 3:9, 15, 31; 4:4; 6:11; 11:1; 13:24","ex":"옷니엘은 그나스의 아들, 에훗은 왼손잡이 베냐민 사람, 삼갈은 아낫의 아들, 드보라는 랍비돗의 아내, 기드온은 요아스의 아들, 입다는 길르앗 사람, 삼손은 마노아의 아들이에요.","h":"에훗은 왼손잡이였어요.","q":"사사와 그를 소개한 말을 바르게 짝지으세요.","L":"사사","R":"소개","pairs":[["옷니엘","갈렙의 아우 그나스의 아들"],["에훗","왼손잡이 베냐민 사람"],["삼갈","아낫의 아들"],["드보라","랍비돗의 아내"],["기드온","요아스의 아들"],["입다","길르앗 사람 큰 용사"],["삼손","마노아의 아들"]]},
+{"type":"match","ref":"창 5:3, 21, 28-29; 룻 4:13-17; 삿 6:11; 13:24; 삼상 9:1; 1:20; 민 25:7","ex":"셋은 아담, 므두셀라는 에녹, 노아는 라멕, 오벳은 보아스, 기드온은 요아스, 삼손은 마노아, 사울은 기스, 사무엘은 엘가나와 한나, 비느하스는 엘르아살의 아들이에요.","h":"노아의 아버지는 므두셀라의 아들이에요.","q":"자녀와 아버지를 바르게 짝지으세요.","L":"자녀","R":"아버지","pairs":[["셋","아담"],["므두셀라","에녹"],["노아","라멕"],["오벳","보아스"],["기드온","요아스"],["삼손","마노아"],["사울","기스"],["사무엘","엘가나"],["비느하스","엘르아살"]]},
+{"type":"match","ref":"창세기 29:32-35; 30:6-24; 35:18","ex":"르우벤, 시므온, 레위, 유다, 잇사갈, 스불론은 레아, 단과 납달리는 빌하, 갓과 아셀은 실바, 요셉과 베냐민은 라헬이 낳았어요.","h":"단과 납달리는 라헬의 시녀가 낳았어요.","q":"야곱의 아들과 그 어머니를 바르게 짝지으세요.","L":"아들","R":"어머니","pairs":[["르우벤","레아"],["유다","레아"],["잇사갈","레아"],["단","빌하"],["납달리","빌하"],["갓","실바"],["아셀","실바"],["요셉","라헬"],["베냐민","라헬"]]},
+{"type":"match","ref":"사 6:1; 단 6:9; 5:25; 왕하 20:6; 왕상 12:17, 20; 3:9; 삼상 9:1-2","ex":"웃시야는 이사야의 환상, 다리오는 금령, 벨사살은 벽의 글씨, 히스기야는 십오 년, 여로보암은 북쪽의 첫 왕, 르호보암은 유다가 따른 왕이에요.","h":"벨사살은 다니엘 5장, 다리오는 6장에 나와요.","q":"왕과 그에 관한 내용을 바르게 짝지으세요.","L":"왕","R":"내용","pairs":[["웃시야","그가 죽던 해에 이사야가 환상을 봄"],["다리오","금령에 도장을 찍음"],["벨사살","잔치 때 벽에 글씨가 나타남"],["히스기야","생명이 십오 년 늘어남"],["여로보암","온 이스라엘이 왕으로 삼음"],["르호보암","유다 지파만 따름"],["솔로몬","듣는 마음을 구함"],["사울","베냐민 사람 기스의 아들"]]},
+{"type":"match","ref":"삼하 12:7; 왕상 19:4; 왕하 6:6; 사 6:7; 욘 4:10; 단 5:27; 삼상 3:10; 출 15:20","ex":"나단은 비유로 책망, 엘리야는 로뎀 나무, 엘리사는 쇠도끼, 이사야는 핀 숯, 요나는 박넝쿨, 다니엘은 데겔 풀이, 사무엘은 듣겠다는 대답, 미리암은 소고예요.","h":"쇠도끼를 떠오르게 한 사람은 엘리야의 뒤를 이은 선지자예요.","q":"선지자와 그에게 있었던 일을 바르게 짝지으세요.","L":"선지자","R":"있었던 일","pairs":[["나단","비유로 다윗을 책망함"],["엘리야","로뎀 나무 아래에서 죽기를 구함"],["엘리사","쇠도끼를 떠오르게 함"],["이사야","입술에 핀 숯이 닿음"],["요나","박넝쿨을 아낌"],["다니엘","데겔을 풀이함"],["사무엘","주의 종이 듣겠다고 대답함"],["미리암","소고를 잡음"]]},
+{"type":"match","ref":"수 2:1; 출 3:1; 삼상 1:3; 왕하 5:1; 단 1:3; 출 15:20; 삿 4:4","ex":"라합은 기생, 이드로는 미디안 제사장, 엘리는 실로의 제사장, 나아만은 아람 군대 장관, 아스부나스는 환관장이에요.","h":"미리암과 드보라는 둘 다 여선지자지만 소개 방식이 달라요.","q":"사람과 본문이 소개한 신분을 바르게 짝지으세요.","L":"사람","R":"신분","pairs":[["라합","기생"],["이드로","미디안 제사장"],["엘리","실로의 여호와의 제사장"],["나아만","아람 왕의 군대 장관"],["아스부나스","환관장"],["미리암","아론의 누이 선지자"],["드보라","이스라엘의 사사가 된 여선지자"]]},
+{"type":"match","ref":"에 2:7; 욥 2:11; 단 1:7; 룻 1:2; 욘 4:10; 느 6:15; 삿 11:1; 사 6:1; 삼상 1:2","ex":"모르드개는 에스더, 엘리바스는 욥기, 벨드사살은 다니엘, 나오미는 룻기, 박넝쿨은 요나예요.","h":"브닌나는 한나와 함께 엘가나의 아내였어요.","q":"인물(내용)과 그것이 나오는 책을 바르게 짝지으세요.","L":"인물·내용","R":"책","pairs":[["모르드개","에스더"],["엘리바스","욥기"],["벨드사살","다니엘"],["나오미","룻기"],["박넝쿨","요나"],["성벽 오십이 일","느헤미야"],["입다","사사기"],["스랍의 핀 숯","이사야"],["브닌나","사무엘상"]]},
+{"type":"match","ref":"출애굽기 2:15; 3:2; 7:20; 14; 15; 16; 20; 24:18; 32","ex":"미디안 도피는 2장, 떨기나무는 3장, 피는 7장, 바다는 14장, 미리암과 마라는 15장, 만나는 16장, 십계명은 20장이에요.","h":"십계명은 출애굽기의 딱 20장에 있어요.","q":"출애굽기의 사건과 장을 바르게 짝지으세요.","L":"사건","R":"장","pairs":[["모세가 미디안으로 피함","2장"],["떨기나무 불꽃","3장"],["물이 피가 됨","7장"],["바다를 건넘","14장"],["미리암의 소고와 마라","15장"],["만나","16장"],["십계명","20장"],["산에서 사십 일 사십 야","24장"],["금 송아지","32장"]]},
+{"type":"match","ref":"창세기 1~41장","ex":"창조 1장, 먹지 말라 하신 나무 2장, 족보 5장, 방주 6장, 바벨 11장, 하란 12장, 이름이 바뀜 17장, 소돔 간구 18장, 소금 기둥 19장, 이삭 출생 21장, 모리아 22장, 팥죽 25장, 브니엘 32장, 요셉 팔림 37장, 꿈 풀이 41장이에요.","h":"아브라함 이야기는 12장부터 시작해요.","q":"창세기의 사건과 장을 바르게 짝지으세요.","L":"사건","R":"장","pairs":[["천지 창조","1장"],["먹지 말라 하신 나무","2장"],["아담부터 노아까지 족보","5장"],["방주의 치수","6장"],["바벨","11장"],["아브람이 하란을 떠남","12장"],["아브라함으로 이름이 바뀜","17장"],["소돔을 위한 간구","18장"],["롯의 아내가 소금 기둥이 됨","19장"],["이삭이 태어남","21장"],["모리아 땅","22장"],["팥죽","25장"],["브니엘","32장"],["요셉이 팔림","37장"],["바로의 꿈 풀이","41장"]]},
+{"type":"match","ref":"열왕기상 1~19장; 열왕기하 2~20장","ex":"솔로몬 기름 부음 왕상 1장, 듣는 마음 3장, 성전 6장, 분열 12장, 까마귀 17장, 갈멜 18장, 로뎀 19장, 엘리야 승천 왕하 2장, 기름 그릇 4장, 나아만 5장, 쇠도끼 6장, 히스기야 20장이에요.","h":"엘리야 이야기는 열왕기상 17장부터 시작해요.","q":"열왕기의 사건과 장을 바르게 짝지으세요.","L":"사건","R":"장","pairs":[["솔로몬이 기름 부음을 받음","열왕기상 1장"],["솔로몬이 듣는 마음을 구함","열왕기상 3장"],["성전을 칠 년 동안 지음","열왕기상 6장"],["여로보암이 왕이 됨","열왕기상 12장"],["까마귀가 엘리야를 먹임","열왕기상 17장"],["갈멜 산 대결","열왕기상 18장"],["로뎀 나무","열왕기상 19장"],["엘리야가 하늘로 올라감","열왕기하 2장"],["기름 그릇","열왕기하 4장"],["나아만","열왕기하 5장"],["쇠도끼","열왕기하 6장"],["히스기야의 십오 년","열왕기하 20장"]]},
+{"type":"match","ref":"출 15:20; 룻 1:4, 14; 창 41:45; 30:4, 9; 삼상 1:2-3","ex":"미리암은 아론의 누이, 오르바는 룻의 동서, 나오미는 룻의 시어머니, 아스낫은 요셉의 아내, 빌하는 라헬의 시녀, 실바는 레아의 시녀예요.","h":"오르바와 룻은 같은 시어머니를 둔 며느리예요.","q":"사람과 관계를 바르게 짝지으세요.","L":"사람","R":"관계","pairs":[["미리암","아론의 누이"],["오르바","룻과 같은 시어머니를 둔 며느리"],["나오미","룻의 시어머니"],["아스낫","요셉의 아내"],["빌하","라헬의 시녀"],["실바","레아의 시녀"],["홉니","엘리의 아들"],["브닌나","엘가나의 다른 아내"]]},
+{"type":"verse","l":["gen",41,45],"ref":"창세기 41:45","q":"이 구절에서 바로가 요셉에게 준 새 이름은 무엇인가요?","a":["사브낫바네아","벨드사살","브니엘","보디베라","아스낫","에브라임"],"ex":"바로는 요셉에게 사브낫바네아라는 이름을 주고, 온의 제사장 보디베라의 딸 아스낫을 아내로 주었어요.","h":"보디베라와 아스낫은 같은 구절에 나오는 다른 사람이에요."},
+{"type":"verse","l":["exo",15,23],"ref":"출애굽기 15:23","q":"이 구절에서 그곳의 이름이 '마라'가 된 까닭은 무엇인가요?","a":["물이 써서 마시지 못했기 때문","물이 피로 변했기 때문","샘이 열둘 있었기 때문","반석에서 물이 났기 때문","백성이 다투었기 때문","만나가 내렸기 때문"],"ex":"그곳 물이 써서 마시지 못하였으므로 이름을 마라라 했다고 기록되어 있어요.","h":"물의 맛과 관련 있어요."},
+{"type":"verse","l":["gen",35,18],"ref":"창세기 35:18","q":"이 구절에서 야곱이 아들에게 붙인 이름은 무엇인가요?","a":["베냐민","베노니","요셉","납달리","단","이스라엘"],"ex":"라헬은 죽어 가며 베노니라 했지만, 아버지 야곱은 베냐민이라 불렀어요.","h":"어머니가 지은 이름과 아버지가 부른 이름이 달라요."},
+{"type":"verse","l":["2ki",5,27],"ref":"열왕기하 5:27","q":"이 구절에서 엘리사가 게하시에게 말한 결과는 무엇인가요?","a":["나아만의 나병이 게하시와 자손에게 들러붙음","게하시가 눈이 멂","게하시가 말을 못 하게 됨","게하시가 소금 기둥이 됨","게하시가 옥에 갇힘","게하시가 엘리사의 뒤를 이음"],"ex":"게하시가 몰래 받은 일 때문에 나아만의 나병이 그와 자손에게 들러붙는다고 했어요.","h":"나아만이 앓던 병과 관련 있어요."}];
+const NT2=[{"type":"multi","ref":"마태복음 5:3-10","ex":"심령이 가난한 자, 애통하는 자, 온유한 자, 의에 주리고 목마른 자, 긍휼히 여기는 자, 마음이 청결한 자, 화평하게 하는 자, 의를 위하여 박해를 받은 자가 복이 있다고 하셨어요.","h":"세상에서 높고 강한 사람과는 거리가 먼 모습들이에요.","q":"마태복음 5장에서 '복이 있다'고 하신 사람을 모두 고르세요.","yes":["심령이 가난한 자","애통하는 자","온유한 자","의에 주리고 목마른 자","긍휼히 여기는 자","마음이 청결한 자","화평하게 하는 자"],"no":["부요한 자","지혜로운 자","강한 자","높임을 받는 자"]},
+{"type":"multi","ref":"에베소서 6:14-17","ex":"진리의 허리 띠, 의의 호심경, 평안의 복음의 신, 믿음의 방패, 구원의 투구, 성령의 검이에요.","h":"성령의 검은 하나님의 말씀이에요.","q":"에베소서 6장의 하나님의 전신 갑주에 해당하는 것을 모두 고르세요.","yes":["진리의 허리 띠","의의 호심경","평안의 복음의 신","믿음의 방패","구원의 투구","성령의 검"],"no":["사랑의 갑옷","소망의 활","인내의 창","지혜의 관"]},
+{"type":"multi","ref":"고린도전서 13:4-7","ex":"사랑은 오래 참고 온유하며, 시기하지 않고 자랑하지 않으며 교만하지 않고, 성내지 않으며 진리와 함께 기뻐하고 모든 것을 견뎌요.","h":"보기 중 일부는 본문의 말을 거꾸로 바꾼 것이에요.","q":"고린도전서 13장에서 말한 사랑의 모습을 모두 고르세요.","yes":["오래 참음","온유함","시기하지 않음","자랑하지 않음","교만하지 않음","성내지 않음","진리와 함께 기뻐함","모든 것을 견딤"],"no":["자기 유익을 먼저 구함","악을 마음에 품음","불의를 기뻐함","옳은 일에는 성냄"]},
+{"type":"multi","ref":"요한복음 6:35; 8:12; 10:7, 11; 11:25; 14:6; 15:1","ex":"생명의 떡, 세상의 빛, 양의 문, 선한 목자, 부활이요 생명, 길이요 진리요 생명, 참포도나무예요.","h":"모두 요한복음 6장부터 15장 사이에 나와요.","q":"요한복음에서 예수께서 '나는 ~이다'로 자신을 말씀하신 표현을 모두 고르세요.","yes":["생명의 떡","세상의 빛","양의 문","선한 목자","부활이요 생명","길이요 진리요 생명","참포도나무"],"no":["살아 있는 반석","하늘의 사다리","새벽 별","만왕의 왕"]},
+{"type":"multi","ref":"누가복음 10:30-35","ex":"예루살렘에서 여리고로 내려가던 사람을 제사장과 레위인은 지나쳤고, 사마리아 사람은 주막으로 데려가 데나리온 둘을 주었어요.","h":"지나간 두 사람은 성전에서 일하던 사람들이에요.","q":"선한 사마리아 사람 비유에 나오는 것을 모두 고르세요.","yes":["예루살렘에서 여리고로 가는 길","제사장","레위인","사마리아 사람","주막","데나리온 둘"],"no":["바리새인","서기관","데나리온 다섯","엠마오로 가는 길"]},
+{"type":"multi","ref":"요한복음 11:1, 16-17, 39","ex":"베다니의 나사로는 마리아와 마르다의 오라비였고, 무덤에 있은 지 나흘이었어요. 디두모라고도 하는 도마도 이 장에 나와요.","h":"제자 가운데 한 사람의 별명도 이 장에 나와요.","q":"요한복음 11장 나사로 이야기에 나오는 것을 모두 고르세요.","yes":["베다니","마르다","마리아","나흘","디두모라고도 하는 도마"],"no":["사흘","나인","야이로","가나"]},
+{"type":"multi","ref":"사도행전 16:13-25","ex":"빌립보에서는 성문 밖 강가, 두아디라 출신 자색 옷감 장사 루디아, 점치는 여종, 감옥에 함께 갇힌 실라가 나와요.","h":"지진으로 옥문이 열린 이야기도 같은 장이에요.","q":"사도행전 16장 빌립보 이야기에 나오는 것을 모두 고르세요.","yes":["루디아","두아디라 출신","자색 옷감","성문 밖 강가","실라","점치는 여종"],"no":["아굴라","유두고","아레오바고","고넬료"]},
+{"type":"multi","ref":"사도행전 4:36; 13:2; 15:39","ex":"바나바는 위로의 아들이라는 뜻의 이름이고, 안디옥에서 사울과 함께 세워졌으며, 바울과 갈라선 뒤 마가를 데리고 구브로로 갔어요.","h":"실라를 택한 사람은 바울이에요.","q":"바나바에 대한 설명으로 맞는 것을 모두 고르세요.","yes":["이름의 뜻이 위로의 아들","안디옥에서 사울과 함께 세워짐","마가를 데리고 구브로로 감"],"no":["실라를 택해 떠남","천막 만드는 일을 함","길리기아 다소에서 태어남","가말리엘 문하에서 배움"]},
+{"type":"order","ref":"마태복음 5:3-10","ex":"심령이 가난한 자, 애통하는 자, 온유한 자, 의에 주리고 목마른 자, 긍휼히 여기는 자, 마음이 청결한 자, 화평하게 하는 자, 박해를 받은 자 순이에요.","h":"처음과 마지막 복은 모두 천국이에요.","q":"마태복음 5장의 복 있는 사람을 본문 순서대로 놓으세요.","seq":["심령이 가난한 자","애통하는 자","온유한 자","의에 주리고 목마른 자","긍휼히 여기는 자","마음이 청결한 자","화평하게 하는 자","의를 위하여 박해를 받은 자"]},
+{"type":"order","ref":"에베소서 6:14-17","ex":"허리 띠, 호심경, 신, 방패, 투구, 검 순이에요.","h":"허리에서 시작해 발, 손, 머리 순으로 나와요.","q":"하나님의 전신 갑주를 본문 순서대로 놓으세요.","seq":["진리의 허리 띠","의의 호심경","평안의 복음의 신","믿음의 방패","구원의 투구","성령의 검"]},
+{"type":"order","ref":"요한복음 6:35; 8:12; 10:7, 11; 11:25; 14:6; 15:1","ex":"생명의 떡(6장), 세상의 빛(8장), 양의 문(10:7), 선한 목자(10:11), 부활이요 생명(11장), 길 진리 생명(14장), 참포도나무(15장) 순이에요.","h":"오병이어 이야기가 있는 장에서 처음 나와요.","q":"요한복음의 '나는 ~이다' 표현을 나오는 순서대로 놓으세요.","seq":["생명의 떡","세상의 빛","양의 문","선한 목자","부활이요 생명","길이요 진리요 생명","참포도나무"]},
+{"type":"order","ref":"고린도전서 13:4-5","ex":"오래 참음, 온유함, 시기하지 않음, 자랑하지 않음, 교만하지 않음, 무례하지 않음, 자기 유익을 구하지 않음, 성내지 않음 순이에요.","h":"'오래 참고'로 시작해요.","q":"고린도전서 13장의 사랑의 모습을 본문 순서대로 놓으세요.","seq":["오래 참음","온유함","시기하지 않음","자랑하지 않음","교만하지 않음","무례히 행하지 않음","자기의 유익을 구하지 않음","성내지 않음"]},
+{"type":"order","ref":"갈라디아서 5:22-23","ex":"사랑, 희락, 화평, 오래 참음, 자비, 양선, 충성, 온유, 절제 순이에요.","h":"사랑으로 시작해 절제로 끝나요.","q":"성령의 열매를 본문 순서대로 놓으세요.","seq":["사랑","희락","화평","오래 참음","자비","양선","충성","온유","절제"]},
+{"type":"order","ref":"마태복음 10:2-4","ex":"베드로, 안드레, 세베대의 아들 야고보, 요한, 빌립, 바돌로매, 도마, 마태, 알패오의 아들 야고보, 다대오, 가나나인 시몬, 가룟 유다 순이에요.","h":"베드로가 맨 앞, 가룟 유다가 맨 뒤예요.","q":"마태복음 10장의 열두 사도 명단을 본문 순서대로 놓으세요.","seq":["베드로라 하는 시몬","안드레","세베대의 아들 야고보","요한","빌립","바돌로매","도마","세리 마태","알패오의 아들 야고보","다대오","가나나인 시몬","가룟 유다"]},
+{"type":"order","ref":"요한복음 1:29, 42; 2; 3; 4; 11; 19:39; 21:11","ex":"하나님의 어린 양, 게바, 가나, 니고데모, 사마리아 여인, 나사로, 장례의 향품, 153마리 순이에요.","h":"니고데모는 3장과 19장에 두 번 나와요.","q":"요한복음의 사건을 나오는 순서대로 놓으세요.","seq":["요한이 예수를 하나님의 어린 양이라 함","시몬에게 게바라는 이름을 주심","가나 혼례에서 첫 표적","니고데모가 밤에 찾아옴","사마리아 여인을 만나심","나사로를 살리심","니고데모가 몰약과 침향을 가져옴","큰 물고기 153마리"]},
+{"type":"order","ref":"누가복음 1:11; 2:7; 7:12; 8:42; 10:30; 15:15; 19:4","ex":"사가랴(1장), 탄생(2장), 나인 성(7장), 야이로의 딸(8장), 선한 사마리아인(10장), 둘째 아들(15장), 삭개오(19장) 순이에요.","h":"삭개오는 예수께서 예루살렘에 가까워지실 무렵 나와요.","q":"누가복음의 사건을 나오는 순서대로 놓으세요.","seq":["천사가 사가랴에게 나타남","예수께서 태어나 구유에 누이심","나인 성 과부의 아들을 살리심","야이로의 딸을 살리심","선한 사마리아 사람 비유","돼지를 치던 둘째 아들 비유","삭개오가 돌무화과나무에 올라감"]},
+{"type":"order","ref":"마태복음 1:17, 23; 2:11, 16; 3:4, 16; 4:2","ex":"족보, 임마누엘, 박사의 예물, 헤롯, 요한의 음식, 세례, 금식 순이에요.","h":"요한이 먼저 소개된 뒤 예수께서 세례를 받으셨어요.","q":"마태복음 1~4장의 내용을 나오는 순서대로 놓으세요.","seq":["족보를 세 시기 열네 대씩 나눔","임마누엘의 뜻을 풀어 줌","박사들이 황금과 유향과 몰약을 드림","헤롯이 두 살 아래 아이를 죽임","요한이 메뚜기와 석청을 먹음","예수께서 요단 강에서 세례를 받으심","광야에서 사십 일을 금식하심"]},
+{"type":"order","ref":"사도행전 1:26; 2; 3; 5:34; 6:5; 7:58; 8:38","ex":"맛디아(1장), 오순절(2장), 미문(3장), 가말리엘(5장), 일곱 사람(6장), 스데반(7장), 빌립과 내시(8장) 순이에요.","h":"가말리엘이 사도들을 버려두라 권한 일은 일곱 사람을 세우기 전이에요.","q":"사도행전 1~8장의 사건을 순서대로 놓으세요.","seq":["맛디아가 제비 뽑혀 사도가 됨","오순절에 성령이 임함","성전 미문의 사람이 일어남","가말리엘이 사도들을 버려두라 권함","일곱 사람을 택함","스데반이 돌에 맞아 죽음","빌립이 에디오피아 내시에게 세례를 줌"]},
+{"type":"order","ref":"사도행전 15:40; 16:14, 18, 25; 17:22; 18:2; 20:9; 22:3; 28:1","ex":"실라를 택함, 루디아, 점치는 여종, 감옥, 아레오바고, 아굴라, 유두고, 다소 출생을 밝힘, 멜리데 순이에요.","h":"빌립보 이야기(16장)가 아덴 이야기(17장)보다 먼저예요.","q":"바울에게 있었던 일을 사도행전 순서대로 놓으세요.","seq":["바나바와 갈라서고 실라를 택함","루디아가 세례를 받음","점치는 여종에게서 귀신을 쫓아냄","감옥에서 실라와 찬송함","아레오바고에서 말함","아굴라와 브리스길라를 만남","유두고가 창에서 떨어짐","길리기아 다소에서 났다고 밝힘","멜리데 섬에 닿음"]},
+{"type":"order","ref":"요한계시록 1:9; 2:4, 10, 14, 20; 3:1, 8, 16","ex":"밧모, 에베소, 서머나, 버가모, 두아디라, 사데, 빌라델비아, 라오디게아 순이에요.","h":"요한이 밧모 섬에 있었다는 말이 가장 먼저 나와요.","q":"요한계시록 1~3장의 내용을 나오는 순서대로 놓으세요.","seq":["요한이 밧모 섬에 있음","처음 사랑을 버린 교회","죽도록 충성하라 하신 교회","발람의 교훈을 지키는 자가 있는 교회","이세벨을 용납한 교회","살았다는 이름은 있으나 죽은 교회","열린 문을 둔 교회","미지근한 교회"]},
+{"type":"order","ref":"신약 목차","ex":"로마서, 고린도전서, 갈라디아서, 빌립보서, 디도서, 빌레몬서, 야고보서, 베드로전서, 유다서 순이에요.","h":"바울이 보낸 서신이 먼저, 야고보·베드로·유다의 서신이 나중에 나와요.","q":"신약 서신을 목차 순서대로 놓으세요.","seq":["로마서","고린도전서","갈라디아서","빌립보서","디도서","빌레몬서","야고보서","베드로전서","유다서"]},
+{"type":"order","ref":"마태복음 27장","ex":"빌라도에게 넘겨짐, 바라바, 구레네 사람 시몬, 제육시의 어둠, 제구시의 외침, 아리마대 요셉의 장례 순이에요.","h":"장례는 맨 마지막이에요.","q":"마태복음 27장의 사건을 순서대로 놓으세요.","seq":["빌라도에게 넘겨지심","바라바가 놓임","구레네 사람 시몬이 십자가를 짐","제육시부터 온 땅에 어둠이 임함","제구시에 크게 소리 지르심","아리마대 요셉이 장사함"]},
+{"type":"match","ref":"마 1:23; 막 3:17; 5:41; 요 1:38, 41-42; 행 9:36; 4:36","ex":"임마누엘은 하나님이 우리와 함께 계심, 보아너게는 우레의 아들, 달리다굼은 소녀야 일어나라, 메시야는 그리스도, 랍비는 선생, 게바는 베드로, 다비다는 도르가, 바나바는 위로의 아들이에요.","h":"본문이 '번역하면'이라며 풀어 준 말들이에요.","q":"말(이름)과 본문이 풀어 준 뜻을 바르게 짝지으세요.","L":"말","R":"뜻","pairs":[["임마누엘","하나님이 우리와 함께 계시다"],["보아너게","우레의 아들"],["달리다굼","소녀야 일어나라"],["메시야","그리스도"],["랍비","선생"],["게바","베드로"],["다비다","도르가"],["바나바","위로의 아들"]]},
+{"type":"match","ref":"마 27:32; 행 22:3; 16:14; 18:2; 마 27:57; 행 6:5; 눅 19:1-2","ex":"시몬은 구레네, 바울은 길리기아 다소, 루디아는 두아디라, 아굴라는 본도, 요셉은 아리마대, 니골라는 안디옥 사람이에요.","h":"니골라는 일곱 사람 가운데 마지막에 나오는 사람이에요.","q":"인물과 출신지를 바르게 짝지으세요.","L":"인물","R":"출신","pairs":[["시몬(십자가를 진)","구레네"],["바울","길리기아 다소"],["루디아","두아디라"],["아굴라","본도"],["요셉(장례를 치른)","아리마대"],["니골라","안디옥"]]},
+{"type":"match","ref":"요 2:11; 마 16:13; 요 4:5; 행 17:22; 28:1-3; 계 1:9; 행 20:6-9; 16:13; 9:11","ex":"첫 표적은 가나, 고백은 빌립보 가이사랴, 사마리아 여인은 수가, 알지 못하는 신은 아덴, 독사는 멜리데, 계시는 밧모예요.","h":"유두고 이야기는 드로아에서 있었어요.","q":"사건과 장소를 바르게 짝지으세요.","L":"사건","R":"장소","pairs":[["물로 포도주를 만드심","갈릴리 가나"],["베드로가 그리스도시라 고백함","빌립보 가이사랴"],["사마리아 여인을 만나심","수가"],["알지 못하는 신에게 새긴 단","아덴"],["바울이 독사에게 물림","멜리데"],["요한이 계시를 받음","밧모"],["유두고가 창에서 떨어짐","드로아"],["사울이 머문 유다의 집","다메섹 직가 거리"]]},
+{"type":"match","ref":"요 11:39; 유 1:1; 막 15:21; 마 17:1; 눅 1:5; 행 5:1; 18:2","ex":"마르다는 나사로의 누이, 유다는 야고보의 형제, 시몬은 알렉산더와 루포의 아버지, 요한은 야고보의 형제예요.","h":"유다서를 쓴 유다는 자신을 야고보의 형제라고 소개해요.","q":"사람과 본문에 나온 관계를 바르게 짝지으세요.","L":"사람","R":"관계","pairs":[["마르다","죽은 나사로의 누이"],["유다(유다서)","야고보의 형제"],["구레네 사람 시몬","알렉산더와 루포의 아버지"],["요한(사도)","야고보의 형제"],["엘리사벳","사가랴의 아내"],["삽비라","아나니아의 아내"],["브리스길라","아굴라의 아내"]]},
+{"type":"match","ref":"행 1:26; 7:59; 8:38; 9:17; 10:1; 16:14; 20:9; 5:34; 13:11","ex":"맛디아는 사도가 됨, 스데반은 순교, 빌립은 내시의 세례, 아나니아는 사울에게 안수, 고넬료는 백부장이에요.","h":"가말리엘은 율법교사로 존경받던 바리새인이에요.","q":"사도행전의 인물과 그에게 있었던 일을 바르게 짝지으세요.","L":"인물","R":"있었던 일","pairs":[["맛디아","제비 뽑혀 사도의 수에 듦"],["스데반","돌에 맞아 죽음"],["빌립","에디오피아 내시에게 세례를 줌"],["아나니아(9장)","사울에게 안수함"],["고넬료","가이사랴의 백부장"],["루디아","자색 옷감 장사"],["유두고","창에서 떨어짐"],["가말리엘","사도들을 버려두라 권함"],["엘루마","잠시 앞을 보지 못하게 됨"]]},
+{"type":"match","ref":"누가복음 10, 15, 19장; 요한복음 2~4장; 마태복음 2장; 마가복음 3, 5장","ex":"사마리아 사람 비유와 둘째 아들 비유와 삭개오는 누가복음, 니고데모와 사마리아 여인과 가나 혼례는 요한복음, 동방 박사는 마태복음, 보아너게와 달리다굼은 마가복음이에요.","h":"동방 박사 이야기는 신약의 첫 책에 있어요.","q":"이야기와 그것이 기록된 복음서를 바르게 짝지으세요.","L":"이야기","R":"복음서","pairs":[["선한 사마리아 사람 비유","누가복음"],["돼지를 치던 둘째 아들 비유","누가복음"],["삭개오","누가복음"],["니고데모","요한복음"],["사마리아 여인","요한복음"],["가나 혼례","요한복음"],["동방 박사","마태복음"],["보아너게","마가복음"],["달리다굼","마가복음"]]},
+{"type":"match","ref":"눅 19:2; 요 3:1; 행 10:1; 16:14; 18:3; 막 5:22; 마 10:3; 행 5:34","ex":"삭개오는 세리장, 니고데모는 유대인의 지도자, 고넬료는 백부장, 루디아는 자색 옷감 장사, 아굴라는 천막 만드는 일, 야이로는 회당장, 마태는 세리, 가말리엘은 율법교사예요.","h":"마태는 열두 사도 명단에서 '세리'로 소개돼요.","q":"사람과 직업(신분)을 바르게 짝지으세요.","L":"사람","R":"직업·신분","pairs":[["삭개오","세리장"],["니고데모","유대인의 지도자"],["고넬료","백부장"],["루디아","자색 옷감 장사"],["아굴라","천막 만드는 일"],["야이로","회당장"],["마태","세리"],["가말리엘","율법교사"]]},
+{"type":"match","ref":"행 7장; 요 3장; 막 3:17; 눅 19장; 계 3:16; 마 2장; 갈 5:22; 엡 6:14; 고전 13:4","ex":"스데반은 사도행전, 니고데모는 요한복음, 보아너게는 마가복음, 삭개오는 누가복음, 라오디게아는 요한계시록이에요.","h":"전신 갑주는 에베소 교회에 보낸 서신에 있어요.","q":"인물(내용)과 그것이 나오는 신약의 책을 바르게 짝지으세요.","L":"인물·내용","R":"책","pairs":[["스데반","사도행전"],["니고데모","요한복음"],["보아너게","마가복음"],["삭개오","누가복음"],["라오디게아 교회","요한계시록"],["동방 박사","마태복음"],["성령의 열매","갈라디아서"],["하나님의 전신 갑주","에베소서"],["사랑은 오래 참고","고린도전서"]]},
+{"type":"match","ref":"사도행전 1~28장","ex":"맛디아 1장, 오순절 2장, 미문 3장, 가말리엘 5장, 일곱 사람 6장, 스데반 7장, 내시 8장, 사울의 안수 9장, 고넬료 10장, 바나바와 사울 13장, 루스드라 14장, 회의 15장, 루디아 16장, 아레오바고 17장, 아굴라 18장, 유두고 20장, 멜리데 28장이에요.","h":"오순절은 사도행전 2장이에요.","q":"사도행전의 사건과 장을 바르게 짝지으세요.","L":"사건","R":"장","pairs":[["맛디아가 뽑힘","1장"],["오순절 성령 강림","2장"],["미문의 사람이 일어남","3장"],["가말리엘의 충고","5장"],["일곱 사람을 택함","6장"],["스데반의 죽음","7장"],["빌립과 에디오피아 내시","8장"],["아나니아가 사울에게 안수함","9장"],["고넬료의 집","10장"],["바나바와 사울을 세움","13장"],["루스드라의 걷지 못하는 사람","14장"],["예루살렘 회의","15장"],["루디아","16장"],["아레오바고","17장"],["아굴라와 브리스길라","18장"],["유두고","20장"],["멜리데","28장"]]},
+{"type":"match","ref":"마태복음 1~27장","ex":"족보 1장, 박사 2장, 요한의 음식 3장, 금식 4장, 주기도문 6장, 열두 사도 10장, 오천 명 14장, 사천 명 15장, 고백 16장, 변형 17장, 은 삼십 26장, 구레네 사람 시몬 27장이에요.","h":"주기도문은 마태복음 6장이에요.","q":"마태복음의 내용과 장을 바르게 짝지으세요.","L":"내용","R":"장","pairs":[["족보","1장"],["동방 박사","2장"],["메뚜기와 석청","3장"],["사십 일 금식","4장"],["주기도문","6장"],["열두 사도 명단","10장"],["오천 명을 먹이심","14장"],["사천 명을 먹이심","15장"],["베드로의 고백","16장"],["높은 산에서 변형되심","17장"],["은 삼십","26장"],["구레네 사람 시몬","27장"]]},
+{"type":"match","ref":"요한복음 1~21장","ex":"하나님의 어린 양 1장, 첫 표적 2장, 니고데모 3장, 사마리아 여인 4장, 생명의 떡 6장, 세상의 빛 8장, 선한 목자 10장, 나사로 11장, 길 진리 생명 14장, 참포도나무 15장, 향품 19장, 153마리 21장이에요.","h":"나사로 이야기는 11장, 마지막 장은 21장이에요.","q":"요한복음의 내용과 장을 바르게 짝지으세요.","L":"내용","R":"장","pairs":[["하나님의 어린 양","1장"],["가나의 첫 표적","2장"],["니고데모가 밤에 찾아옴","3장"],["사마리아 여인","4장"],["나는 생명의 떡","6장"],["나는 세상의 빛","8장"],["나는 선한 목자","10장"],["나사로를 살리심","11장"],["나는 길이요 진리요 생명","14장"],["나는 참포도나무","15장"],["몰약과 침향","19장"],["큰 물고기 153마리","21장"]]},
+{"type":"match","ref":"마태복음 5:3-10","ex":"심령이 가난한 자는 천국, 애통하는 자는 위로, 온유한 자는 땅, 의에 주리고 목마른 자는 배부름, 긍휼히 여기는 자는 긍휼, 마음이 청결한 자는 하나님을 봄, 화평하게 하는 자는 하나님의 아들이에요.","h":"긍휼히 여기는 자는 받는 것도 같은 말이에요.","q":"복 있는 사람과 그가 받을 복을 바르게 짝지으세요.","L":"복 있는 사람","R":"받을 복","pairs":[["심령이 가난한 자","천국이 그들의 것"],["애통하는 자","위로를 받음"],["온유한 자","땅을 기업으로 받음"],["의에 주리고 목마른 자","배부름"],["긍휼히 여기는 자","긍휼히 여김을 받음"],["마음이 청결한 자","하나님을 봄"],["화평하게 하는 자","하나님의 아들이라 일컬음"]]},
+{"type":"match","ref":"에베소서 6:14-17","ex":"진리는 허리 띠, 의는 호심경, 평안의 복음은 신, 믿음은 방패, 구원은 투구, 성령은 검이에요.","h":"성령의 검은 하나님의 말씀이에요.","q":"전신 갑주의 덕목과 무구를 바르게 짝지으세요.","L":"덕목","R":"무구","pairs":[["진리","허리 띠"],["의","호심경"],["평안의 복음","신"],["믿음","방패"],["구원","투구"],["성령","검"]]},
+{"type":"match","ref":"요한계시록 2:4, 10, 14, 20; 3:1, 8, 16","ex":"에베소는 처음 사랑, 서머나는 죽도록 충성, 버가모는 발람의 교훈, 두아디라는 이세벨, 사데는 살았다는 이름, 빌라델비아는 열린 문, 라오디게아는 미지근함이에요.","h":"서머나 교회는 책망 없이 생명의 관을 약속받았어요.","q":"교회와 그 교회에 주신 말씀을 바르게 짝지으세요.","L":"교회","R":"말씀","pairs":[["에베소","처음 사랑을 버렸음"],["서머나","죽도록 충성하라, 생명의 관"],["버가모","발람의 교훈을 지키는 자들"],["두아디라","이세벨을 용납함"],["사데","살았다는 이름은 있으나 죽은 자"],["빌라델비아","네 앞에 열린 문을 둠"],["라오디게아","차지도 뜨겁지도 않음"]]},
+{"type":"match","ref":"로마서·빌립보서·디도서·빌레몬서·야고보서·유다서·베드로전서 1:1","ex":"로마서와 디도서는 바울, 빌립보서와 빌레몬서는 바울과 디모데, 야고보서는 야고보, 유다서는 유다, 베드로전서는 베드로가 보낸 사람으로 나와요.","h":"빌립보서와 빌레몬서는 두 사람 이름으로 시작해요.","q":"서신과 1장 1절에 나오는 보낸 사람을 바르게 짝지으세요.","L":"서신","R":"보낸 사람","pairs":[["로마서","예수 그리스도의 종 바울"],["빌립보서","바울과 디모데"],["디도서","하나님의 종이요 사도인 바울"],["빌레몬서","갇힌 자 된 바울과 형제 디모데"],["야고보서","하나님과 주 예수 그리스도의 종 야고보"],["유다서","야고보의 형제 유다"],["베드로전서","예수 그리스도의 사도 베드로"]]},
+{"type":"match","ref":"마태복음 10:2-4; 요한복음 11:16","ex":"베드로라 하는 시몬, 세베대의 아들 야고보, 알패오의 아들 야고보, 세리 마태, 가나나인 시몬, 가룟 유다, 디두모라고도 하는 도마예요.","h":"시몬과 야고보는 열두 사도 중에 두 명씩 있어요.","q":"사도를 소개하는 말과 그 이름을 바르게 짝지으세요.","L":"소개하는 말","R":"이름","pairs":[["베드로라 하는","시몬"],["가나나인","시몬"],["세베대의 아들","야고보"],["알패오의 아들","야고보"],["세리","마태"],["가룟","유다"],["디두모라고도 하는","도마"]]},
+{"type":"match","ref":"마 16:16; 요 14:5; 11:39; 1:29, 41; 눅 15:32","ex":"베드로는 그리스도시라 고백, 도마는 길을 어떻게 알겠느냐 물음, 마르다는 나흘이 되었다 함, 세례 요한은 하나님의 어린 양, 안드레는 메시야를 만났다 함이에요.","h":"'그 길을 어찌 알겠느냐'고 물은 제자가 있어요.","q":"말한 사람과 그가 한 말(내용)을 바르게 짝지으세요.","L":"말한 사람","R":"한 말","pairs":[["시몬 베드로","주는 그리스도시라 고백함"],["도마","주께서 가시는 길을 어찌 알겠느냐 물음"],["마르다","죽은 지 나흘이 되었다고 함"],["세례 요한","예수를 하나님의 어린 양이라 함"],["안드레","메시야를 만났다고 함"],["둘째 아들의 아버지","이 네 동생은 죽었다가 살아났다고 함"]]},
+{"type":"match","ref":"요 1:42; 마 16:13-16; 행 3:2-7; 9:32-40; 10:1","ex":"게바는 예수께서 주신 이름, 빌립보 가이사랴는 고백한 곳, 미문은 걷지 못하는 사람, 룻다는 애니아, 욥바는 다비다, 가이사랴는 고넬료예요.","h":"애니아는 룻다, 다비다는 욥바에 있었어요.","q":"베드로와 관련된 말(곳)과 그곳의 일을 바르게 짝지으세요.","L":"말·곳","R":"있었던 일","pairs":[["게바","예수께서 시몬에게 주신 이름"],["빌립보 가이사랴","그리스도시라 고백함"],["성전 미문","걷지 못하는 사람을 일으킴"],["룻다","중풍병자 애니아를 고침"],["욥바","다비다를 살림"],["가이사랴","백부장 고넬료의 집"]]},
+{"type":"match","ref":"마 2:16; 3:13; 4:1; 요 2:1; 마 16:13; 요 11:1; 마 26:36; 27:33","ex":"베들레헴은 헤롯의 명령, 요단 강은 세례, 광야는 금식, 가나는 첫 표적, 빌립보 가이사랴는 질문, 베다니는 나사로, 겟세마네는 기도, 골고다는 십자가예요.","h":"나사로와 마르다, 마리아는 베다니에 살았어요.","q":"장소와 예수께 그곳에서 있었던 일을 바르게 짝지으세요.","L":"장소","R":"있었던 일","pairs":[["베들레헴","헤롯이 두 살 아래 아이를 죽이게 함"],["요단 강","세례를 받으심"],["광야","사십 일을 금식하심"],["갈릴리 가나","첫 표적을 행하심"],["빌립보 가이사랴","사람들이 인자를 누구라 하는지 물으심"],["베다니","나사로를 살리심"],["겟세마네","기도하심"],["골고다","십자가에 못 박히심"]]},
+{"type":"verse","l":["mrk",5,25],"ref":"마가복음 5:25","q":"이 구절에 나오는 여인이 혈루증을 앓아 온 기간은?","a":["열두 해","열여덟 해","서른여덟 해","일곱 해","열 해","사십 년"],"ex":"열두 해를 혈루증으로 앓아 온 여자라고 기록되어 있어요. 같은 장의 야이로의 딸도 열두 살이었어요.","h":"같은 장 야이로의 딸의 나이와 같은 수예요."},
+{"type":"verse","l":["act",4,36],"ref":"사도행전 4:36","q":"이 구절에서 '바나바'의 뜻으로 풀이된 것은?","a":["위로의 아들","우레의 아들","오른손의 아들","슬픔의 아들","평안의 아들","빛의 아들"],"ex":"사도들이 바나바라 부른 요셉의 이름을 번역하면 위로의 아들이라고 나와요.","h":"구절 안 괄호를 보세요."},
+{"type":"verse","l":["jhn",1,38],"ref":"요한복음 1:38","q":"이 구절에서 '랍비'를 번역한 말은?","a":["선생","그리스도","베드로","주","목자","아버지"],"ex":"랍비는 번역하면 선생이라고 본문 괄호에 나와요.","h":"구절 안 괄호를 보세요."},
+{"type":"verse","l":["act",6,5],"ref":"사도행전 6:5","q":"이 구절에서 '믿음과 성령이 충만한 사람'으로 소개된 사람은?","a":["스데반","빌립","니골라","바나바","바울","디모데"],"ex":"일곱 사람 가운데 첫 번째로 스데반이 그렇게 소개되었어요.","h":"일곱 사람 가운데 맨 앞에 나와요."},
+{"type":"verse","l":["mat",2,16],"ref":"마태복음 2:16","q":"이 구절에서 헤롯이 아이들을 죽일 때 무엇을 기준으로 삼았나요?","a":["박사들에게 자세히 알아본 그 때","천사가 꿈에 나타난 날","별이 처음 보인 곳","제사장들이 말한 성경","목자들이 전한 소식","요셉이 애굽으로 떠난 날"],"ex":"헤롯은 박사들에게 자세히 알아본 그 때를 기준으로 두 살부터 그 아래의 아이를 죽였어요.","h":"헤롯이 박사들에게 무엇을 물었는지 떠올려 보세요."},
+{"type":"verse","l":["act",17,16],"ref":"사도행전 17:16","q":"이 구절에서 바울이 아덴에서 마음에 격분한 까닭은?","a":["성에 우상이 가득한 것을 보고","유대인들이 그를 쫓아내서","실라와 디모데가 오지 않아서","철학자들이 그를 비웃어서","회당이 문을 닫아서","배가 파선해서"],"ex":"바울은 아덴 성에 우상이 가득한 것을 보고 마음에 격분했어요.","h":"바울이 성 안에서 본 것이 이유예요."},
+{"type":"verse","l":["act",28,6],"ref":"사도행전 28:6","q":"이 구절에서 원주민들이 마지막에 바울을 무엇이라고 말했나요?","a":["신","살인한 자","선지자","마술사","천사","로마의 관리"],"ex":"처음에는 살인한 자라 여겼지만, 오래 기다려도 이상이 없자 생각을 바꾸어 신이라고 했어요.","h":"4절에서 처음에 한 생각과 반대예요."},
+{"type":"verse","l":["luk",1,20],"ref":"누가복음 1:20","q":"이 구절에서 천사가 사가랴에게 말한 일은 무엇인가요?","a":["일이 이루어질 날까지 말을 못 하게 됨","눈이 멀게 됨","성전에서 쫓겨남","나병에 걸림","아들의 이름을 사가랴로 지음","곧 죽게 됨"],"ex":"천사의 말을 믿지 않았기 때문에, 이루어질 때까지 말을 하지 못하게 된다고 했어요.","h":"22절에서 사가랴가 몸짓으로 뜻을 전해요."}];
+const BOTH=[{"type":"match","ref":"왕상 17:23; 왕하 4:35; 행 9:40; 20:10; 요 11장; 눅 7:15","ex":"사르밧 과부의 아들은 엘리야, 수넴 여인의 아들은 엘리사, 다비다는 베드로, 유두고는 바울, 나사로와 나인 성 과부의 아들은 예수께서 살리셨어요.","h":"구약에서는 엘리야와 엘리사가 한 번씩 죽은 아이를 살렸어요.","q":"살아난 사람과 살린 사람을 바르게 짝지으세요.","L":"살아난 사람","R":"살린 사람","pairs":[["사르밧 과부의 아들","엘리야"],["수넴 여인의 아들","엘리사"],["욥바의 다비다","베드로"],["드로아의 유두고","바울"],["베다니의 나사로","예수"],["나인 성 과부의 아들","예수"]]}];
+
+/* 새 본문에서 뽑은 추가 문제 (대한성서공회 개역개정 본문과 대조해 확인함) */
+const OT3=[
+ // ── 하나 고르기 ──
+ {ref:"신명기 34:1, 7",ex:"모세는 느보 산 비스가 꼭대기에 올라 가나안을 보았고, 120세에 죽었지만 눈이 흐리지 않고 기력이 쇠하지 않았어요.",h:"모세의 생애는 40년씩 세 번으로 나눠 생각하기도 해요.",
+  v:[["모세가 죽을 때의 나이는?",["120세","110세","100세","130세","125세","115세"]],
+     ["모세가 죽기 전에 모압 평지에서 올라간 산은?",["느보 산","갈멜 산","시내 산","호렙 산","다볼 산","헤르몬 산"]]]},
+ {ref:"여호수아 24:29",ex:"눈의 아들 여호수아는 백십 세에 죽었어요.",h:"모세보다 열 살 적은 나이예요.",
+  v:[["여호수아가 죽을 때의 나이는?",["110세","120세","100세","115세","105세","130세"]],
+     ["백십 세에 죽은 여호와의 종, 눈의 아들은 누구인가요?",["여호수아","갈렙","엘르아살","비느하스","아론","옷니엘"]]]},
+ {ref:"사무엘상 16:4, 7",ex:"사무엘은 베들레헴에 갔고, 여호와께서는 사람은 외모를 보나 여호와는 중심을 보신다고 하셨어요.",h:"사람이 보는 것과 하나님이 보시는 것이 대비돼요.",
+  v:[["사무엘상 16장에서 여호와는 사람의 무엇을 보신다고 하셨나요?",["중심","외모","키","용모","나이","지혜"]],
+     ["다윗에게 기름을 부으러 사무엘이 간 성읍은?",["베들레헴","라마","실로","헤브론","기브아","미스바"]]]},
+ {ref:"열왕기하 22:1, 8",ex:"요시야는 여덟 살에 왕이 되었고, 그때 대제사장 힐기야가 성전에서 율법책을 발견했어요.",h:"아주 어린 나이에 왕이 되었어요.",
+  v:[["요시야가 왕이 될 때의 나이는?",["여덟 살","열두 살","열여섯 살","일곱 살","열 살","스무 살"]],
+     ["요시야 때 성전에서 율법책을 발견한 대제사장은?",["힐기야","사반","엘리아김","사독","아비아달","여호야다"]]]},
+ {ref:"열왕기상 11:3, 42",ex:"솔로몬에게는 후궁이 칠백 명, 첩이 삼백 명 있었고, 예루살렘에서 사십 년 동안 다스렸어요.",h:"아버지 다윗과 같은 햇수를 다스렸어요.",
+  v:[["솔로몬이 온 이스라엘을 다스린 기간은?",["40년","33년","30년","45년","38년","50년"]],
+     ["열왕기상 11장에 기록된 솔로몬의 후궁의 수는?",["칠백 명","삼백 명","천 명","오백 명","육백 명","팔백 명"]]]},
+ {ref:"사사기 16:4-5",ex:"삼손이 사랑한 들릴라는 소렉 골짜기의 여인이었고, 블레셋 방백들은 각각 은 천백 개를 주겠다고 했어요.",h:"방백들이 내건 값은 천을 조금 넘어요.",
+  v:[["삼손이 사랑한 들릴라가 살던 골짜기는?",["소렉 골짜기","아골 골짜기","엘라 골짜기","아얄론 골짜기","헌놈의 골짜기","기드론 골짜기"]],
+     ["블레셋 방백들이 들릴라에게 각각 주겠다고 한 것은?",["은 천백 개","은 삼십","은 천 개","금 천백 개","은 오백 개","은 천이백 개"]]]},
+ {ref:"여호수아 7:1, 4, 21, 26",ex:"유다 지파 아간이 바친 물건을 취해 이스라엘이 아이 성에서 패했고, 그 일이 있었던 골짜기는 아골 골짜기라 불렸어요.",h:"여리고 다음에 공격한 작은 성이에요.",
+  v:[["여리고에서 바친 물건을 몰래 취한 사람은?",["아간","갈렙","고라","다단","아비람","비느하스"]],
+     ["아간의 죄 때문에 이스라엘이 처음 패한 성은?",["아이","여리고","기브온","헤브론","라기스","벧엘"]]]},
+ {ref:"출애굽기 17:9-15",ex:"여호수아가 아말렉과 싸우는 동안 아론과 훌이 모세의 손을 붙들었고, 모세는 제단을 쌓아 여호와닛시라 했어요.",h:"모세의 형과 또 한 사람이에요.",
+  v:[["아말렉과 싸울 때 모세의 손을 붙든 두 사람은?",["아론과 훌","여호수아와 갈렙","아론과 미리암","엘르아살과 이다말","나답과 아비후","갈렙과 훌"]],
+     ["아말렉을 이긴 뒤 모세가 쌓은 제단의 이름은?",["여호와닛시","여호와이레","여호와샬롬","엘벧엘","브니엘","길갈"]]]},
+ {ref:"민수기 22:2-5, 23",ex:"십볼의 아들 모압 왕 발락이 브올의 아들 발람을 불렀고, 나귀는 칼을 빼 든 여호와의 사자를 보고 길에서 벗어났어요.",h:"발람과 발락은 이름이 비슷하니 주의하세요.",
+  v:[["발람을 불러 이스라엘을 저주하게 하려던 모압 왕은?",["발락","발람","에글론","시혼","옥","아각"]],
+     ["발람의 나귀가 길에서 벗어난 까닭은?",["칼을 빼 든 여호와의 사자를 보아서","길에 사자가 엎드려 있어서","발람이 채찍을 들어서","길이 무너져 있어서","강물이 불어서","모압 군대를 보아서"]]]},
+ {ref:"욥기 1:1-2",ex:"욥은 우스 땅에 살았고, 아들 일곱과 딸 셋이 있었어요.",h:"욥의 친구들이 살던 곳(데만, 수아, 나아마)과는 달라요.",
+  v:[["욥이 살았던 땅은?",["우스","데만","수아","나아마","모압","하란"]],
+     ["욥기 1장에서 처음 욥에게 있었던 자녀는?",["아들 일곱과 딸 셋","아들 셋과 딸 일곱","아들 열과 딸 셋","아들 일곱과 딸 일곱","아들 다섯과 딸 다섯","아들 열둘"]]]},
+ {ref:"레위기 11:7, 9",ex:"돼지는 굽이 갈라져 쪽발이지만 새김질을 못 하므로 부정하고, 물에 사는 것은 지느러미와 비늘이 있으면 먹을 수 있었어요.",h:"먹을 수 있는 짐승의 조건은 쪽발과 새김질 두 가지예요.",
+  v:[["레위기 11장에서 돼지가 부정하다고 한 까닭은?",["새김질을 하지 못해서","굽이 갈라지지 않아서","비늘이 없어서","땅을 파서","피가 많아서","날개가 없어서"]],
+     ["레위기 11장에서 물에 사는 것 가운데 먹을 수 있는 것의 조건은?",["지느러미와 비늘이 있는 것","비늘만 있는 것","지느러미만 있는 것","껍데기가 있는 것","바다에 사는 것","크기가 큰 것"]]]},
+
+ // ── 본문 읽기 ──
+ {type:"verse",l:["jos",24,15],ref:"여호수아 24:15",q:"이 구절에서 '나와 내 집은 여호와를 섬기겠노라'고 말한 사람은?",
+  a:["여호수아","갈렙","모세","엘르아살","사무엘","다윗"],ex:"여호수아가 백성에게 섬길 자를 택하라고 하며 자신과 집의 결심을 밝혔어요.",h:"백십 세에 죽은 지도자예요."},
+ {type:"verse",l:["est",4,16],ref:"에스더 4:16",q:"이 구절에서 '죽으면 죽으리이다'라고 말한 사람은?",
+  a:["에스더","모르드개","하만","와스디","룻","한나"],ex:"에스더는 삼 일 동안 함께 금식해 달라고 한 뒤 왕에게 나아가겠다고 했어요.",h:"14절의 '이 때를 위함이 아닌지'는 다른 사람이 한 말이에요."},
+ {type:"verse",l:["mic",5,2],ref:"미가 5:2",q:"이 구절에서 이스라엘을 다스릴 자가 나올 곳은?",
+  a:["베들레헴 에브라다","나사렛","예루살렘","갈릴리","헤브론","실로"],ex:"미가는 베들레헴 에브라다에서 이스라엘을 다스릴 자가 나온다고 했어요.",h:"다윗이 기름 부음을 받은 고을이에요."},
+
+ // ── 모두 고르기 ──
+ {type:"multi",ref:"레위기 23장",ex:"레위기 23장에는 안식일, 유월절, 무교절, 첫 이삭 단을 흔드는 날, 오십 일 뒤의 새 소제, 일곱째 달 첫 날의 나팔, 속죄일, 초막절이 나와요.",h:"에스더서와 요한복음에 나오는 절기는 여기에 없어요.",
+  q:"레위기 23장에 나오는 절기와 날을 모두 고르세요.",yes:["안식일","유월절","무교절","속죄일","초막절","첫 이삭 한 단을 흔드는 날"],no:["부림절","수전절","희년","안식년"]},
+ {type:"multi",ref:"신명기 6:5",ex:"마음을 다하고 뜻을 다하고 힘을 다하여 여호와를 사랑하라고 했어요.",h:"세 가지예요.",
+  q:"신명기 6장 5절에서 무엇을 다하여 여호와를 사랑하라고 했나요? 모두 고르세요.",yes:["마음","뜻","힘"],no:["지혜","재물","시간","정성"]},
+ {type:"multi",ref:"신명기 6:8-9",ex:"말씀을 손목에 매어 기호로, 미간에 붙여 표로 삼고, 집 문설주와 바깥 문에 기록하라고 했어요.",h:"몸 두 곳과 집 두 곳이에요.",
+  q:"신명기 6장에서 말씀을 매거나 붙이거나 기록하라고 한 곳을 모두 고르세요.",yes:["손목","미간","집 문설주","바깥 문"],no:["허리","지팡이","성벽","장막 휘장"]},
+ {type:"multi",ref:"신명기 34:1-9",ex:"모세는 느보 산 비스가 꼭대기에 올라갔고, 모압 땅에서 120세에 죽었으며, 이스라엘은 30일 동안 애곡했어요.",h:"모세는 가나안 땅에 들어가지 못했어요.",
+  q:"신명기 34장 모세의 죽음 이야기에 나오는 것을 모두 고르세요.",yes:["느보 산","비스가 산꼭대기","모압 땅","120세","눈이 흐리지 않음","30일 동안 애곡함"],no:["시내 산","가나안 땅에서 죽음","70일 동안 애곡함","눈이 어두워짐"]},
+ {type:"multi",ref:"여호수아 6:3-4, 15, 17",ex:"제사장 일곱이 양각 나팔을 들고 엿새 동안 하루 한 번, 일곱째 날에는 일곱 번 성을 돌았고, 라합과 그 집 사람들은 살았어요.",h:"숫자 일곱이 여러 번 나와요.",
+  q:"여리고 성 이야기(여호수아 6장)에 나오는 것을 모두 고르세요.",yes:["양각 나팔","제사장 일곱","엿새 동안 하루 한 번 돎","일곱째 날 일곱 번 돎","라합의 가족이 살아남음"],no:["나팔 열둘","열흘 동안 돎","횃불과 항아리","아간의 가족이 살아남음"]},
+ {type:"multi",ref:"사무엘상 16:4-23",ex:"사무엘은 베들레헴에서 이새의 아들 엘리압, 아비나답, 삼마를 지나 양을 지키던 다윗에게 기름을 부었고, 다윗은 사울 앞에서 수금을 탔어요.",h:"다윗의 형 세 사람의 이름이 나와요.",
+  q:"사무엘상 16장에 나오는 것을 모두 고르세요.",yes:["베들레헴","엘리압","아비나답","삼마","양을 지킴","수금"],no:["골리앗","요나단","미갈","압살롬"]},
+ {type:"multi",ref:"사무엘상 18:4",ex:"요나단은 겉옷, 군복, 칼, 활, 띠를 다윗에게 주었어요.",h:"다섯 가지예요.",
+  q:"요나단이 벗어 다윗에게 준 것을 모두 고르세요.",yes:["겉옷","군복","칼","활","띠"],no:["반지","창","방패","신발"]},
+ {type:"multi",ref:"열왕기상 21:1-13",ex:"이스르엘 사람 나봇의 포도원을 아합이 원했고, 이세벨이 거짓 증인을 세워 나봇을 돌로 쳐 죽이게 했어요.",h:"왕과 왕비가 함께 등장해요.",
+  q:"나봇의 포도원 이야기에 나오는 것을 모두 고르세요.",yes:["이스르엘","아합","이세벨","포도원","돌에 맞아 죽음"],no:["감람원","칼에 맞아 죽음","요아스","사마리아 우물"]},
+ {type:"multi",ref:"열왕기하 22:1-14",ex:"여덟 살에 왕이 된 요시야 때 대제사장 힐기야가 율법책을 발견했고, 서기관 사반이 읽었으며, 그들은 여선지자 훌다를 찾아갔어요.",h:"여선지자의 남편은 예복을 주관하는 살룸이에요.",
+  q:"요시야 이야기(열왕기하 22장)에 나오는 것을 모두 고르세요.",yes:["여덟 살에 왕이 됨","대제사장 힐기야","서기관 사반","여선지자 훌다","율법책"],no:["열두 살에 왕이 됨","선지자 이사야","학사 에스라","여선지자 드보라"]},
+ {type:"multi",ref:"느헤미야 8:1-4",ex:"백성이 수문 앞 광장에 모였고, 제사장이자 학사인 에스라가 나무 강단에 서서 새벽부터 정오까지 율법책을 읽었어요.",h:"읽은 시간은 하루의 앞부분이에요.",
+  q:"느헤미야 8장 율법 낭독 장면에 나오는 것을 모두 고르세요.",yes:["수문 앞 광장","에스라","새벽부터 정오까지","나무 강단"],no:["성전 뜰","선지자 학개","저녁부터 밤까지","돌 제단"]},
+ {type:"multi",ref:"에스더 4:14-16",ex:"모르드개가 이 때를 위함이 아닌지 말했고, 에스더는 수산의 유다인들에게 삼 일 금식을 부탁하며 죽으면 죽으리라고 했어요.",h:"금식 기간은 사흘이에요.",
+  q:"에스더 4장에 나오는 것을 모두 고르세요.",yes:["이 때를 위함이 아닌지","삼 일 동안 금식함","죽으면 죽으리이다","수산"],no:["칠 일 동안 금식함","사십 일 동안 금식함","바벨론","하만의 처형"]},
+ {type:"multi",ref:"욥기 1:2-3",ex:"욥에게는 아들 일곱과 딸 셋, 양 칠천, 낙타 삼천, 소 오백 겨리, 암나귀 오백이 있었어요.",h:"회복된 뒤의 수와 헷갈리지 마세요.",
+  q:"욥기 1장에서 처음 욥이 가졌던 것을 모두 고르세요.",yes:["양 칠천","낙타 삼천","소 오백 겨리","암나귀 오백","아들 일곱","딸 셋"],no:["양 만 사천","낙타 육천","딸 일곱","말 천 필"]},
+ {type:"multi",ref:"욥기 42:10-16",ex:"여호와께서 욥에게 갑절을 주셔서 양 만 사천, 낙타 육천, 소 천 겨리, 암나귀 천을 두었고, 그 후 욥은 백사십 년을 살았어요.",h:"처음 재산의 두 배예요.",
+  q:"욥기 42장 회복 이후의 내용으로 맞는 것을 모두 고르세요.",yes:["이전의 갑절","양 만 사천","낙타 육천","소 천 겨리","암나귀 천","백사십 년을 더 삶"],no:["이전의 세 배","양 칠천","낙타 삼천","이백 년을 더 삶"]},
+ {type:"multi",ref:"시편 23편",ex:"푸른 풀밭, 쉴 만한 물가, 의의 길, 음침한 골짜기, 지팡이와 막대기, 원수의 목전에 차린 상, 넘치는 잔, 여호와의 집이 나와요.",h:"목자와 양의 그림이에요.",
+  q:"시편 23편에 나오는 것을 모두 고르세요.",yes:["푸른 풀밭","쉴 만한 물가","의의 길","지팡이와 막대기","원수의 목전에 차린 상","넘치는 잔"],no:["반석과 산성","독수리 날개","시냇가에 심은 나무","깊은 바다"]},
+ {type:"multi",ref:"시편 1:1",ex:"복 있는 사람은 악인들의 꾀를 따르지 않고, 죄인들의 길에 서지 않고, 오만한 자들의 자리에 앉지 않아요.",h:"따르지, 서지, 앉지 않는 세 가지예요.",
+  q:"시편 1편에서 복 있는 사람이 '하지 않는' 것을 모두 고르세요.",yes:["악인들의 꾀를 따름","죄인들의 길에 섬","오만한 자들의 자리에 앉음"],no:["여호와의 율법을 묵상함","시냇가에 심은 나무 같음","철을 따라 열매를 맺음","율법을 즐거워함"]},
+ {type:"multi",ref:"잠언 6:16-19",ex:"교만한 눈, 거짓된 혀, 무죄한 자의 피를 흘리는 손, 악한 계교를 꾀하는 마음, 악으로 빨리 달려가는 발, 거짓 증인, 형제 사이를 이간하는 자예요.",h:"모두 일곱 가지예요.",
+  q:"잠언 6장에서 여호와께서 미워하신다고 한 것을 모두 고르세요.",yes:["교만한 눈","거짓된 혀","무죄한 자의 피를 흘리는 손","악한 계교를 꾀하는 마음","악으로 빨리 달려가는 발","거짓을 말하는 망령된 증인","형제 사이를 이간하는 자"],no:["겸손한 마음","부지런한 손","진실한 입술","화평하게 하는 자"]},
+ {type:"multi",ref:"전도서 3:2-8",ex:"날 때와 죽을 때, 심을 때와 뽑을 때, 울 때와 웃을 때, 찢을 때와 꿰맬 때, 사랑할 때와 미워할 때, 전쟁할 때와 평화할 때 등 열네 짝이 나와요.",h:"모두 반대되는 두 가지가 짝을 이뤄요.",
+  q:"전도서 3장에 나오는 '때'의 짝을 모두 고르세요.",yes:["날 때와 죽을 때","심을 때와 뽑을 때","울 때와 웃을 때","찢을 때와 꿰맬 때","사랑할 때와 미워할 때","전쟁할 때와 평화할 때"],no:["먹을 때와 굶을 때","일할 때와 쉴 때","갈 때와 올 때","얻을 때와 나눌 때"]},
+ {type:"multi",ref:"이사야 9:6",ex:"한 아기의 이름은 기묘자, 모사, 전능하신 하나님, 영존하시는 아버지, 평강의 왕이라 불려요.",h:"다섯 가지 이름이에요.",
+  q:"이사야 9장 6절에서 한 아기의 이름으로 불린 것을 모두 고르세요.",yes:["기묘자","모사","전능하신 하나님","영존하시는 아버지","평강의 왕"],no:["만왕의 왕","임마누엘","선한 목자","생명의 떡"]},
+ {type:"multi",ref:"다니엘 3:1, 19, 25",ex:"느부갓네살은 두라 평지에 높이 육십 규빗, 너비 여섯 규빗의 금 신상을 세웠고, 풀무불을 일곱 배 뜨겁게 했으며, 불 가운데 네 사람이 다니는 것을 보았어요.",h:"사자 굴은 다른 장의 이야기예요.",
+  q:"다니엘 3장에 나오는 것을 모두 고르세요.",yes:["금 신상","두라 평지","높이 육십 규빗","일곱 배 뜨거운 풀무불","불 가운데 다니는 네 사람"],no:["사자 굴","다리오 왕","높이 백 규빗","벽에 쓰인 글씨"]},
+ {type:"multi",ref:"호세아 1:3-9",ex:"호세아는 디블라임의 딸 고멜을 아내로 맞았고, 자녀 이름은 이스르엘, 로루하마, 로암미예요.",h:"아내와 장인 이름도 보기에 섞여 있어요.",
+  q:"호세아 1장에서 호세아의 자녀 이름을 모두 고르세요.",yes:["이스르엘","로루하마","로암미"],no:["고멜","디블라임","마헬살랄하스바스","스알야숩"]},
+ {type:"multi",ref:"요엘 2:28",ex:"하나님이 영을 만민에게 부어 주시면 자녀들은 장래 일을 말하고, 늙은이는 꿈을 꾸고, 젊은이는 이상을 본다고 했어요.",h:"꿈과 이상이 누구에게 짝지어졌는지 주의하세요.",
+  q:"요엘 2장 28절의 내용으로 맞는 것을 모두 고르세요.",yes:["만민에게 영을 부어 줌","자녀들은 장래 일을 말함","늙은이는 꿈을 꿈","젊은이는 이상을 봄"],no:["늙은이는 이상을 봄","젊은이는 꿈을 꿈","자녀들은 방언을 함"]},
+
+ // ── 순서 배열 ──
+ {type:"order",ref:"레위기 23장",ex:"안식일, 유월절, 무교절, 첫 이삭 단, 오십 일 뒤의 새 소제, 일곱째 달 첫 날, 속죄일, 초막절 순이에요.",h:"첫째 달 절기가 먼저, 일곱째 달 절기가 나중이에요.",
+  q:"레위기 23장의 절기와 날을 본문 순서대로 놓으세요.",seq:["안식일","유월절","무교절","첫 이삭 한 단을 흔드는 날","오십 일을 세어 새 소제를 드리는 날","일곱째 달 첫 날 나팔을 부는 날","속죄일","초막절"]},
+ {type:"order",ref:"여호수아 2:1; 6:3, 15, 17",ex:"정탐꾼이 라합의 집에 묵음, 엿새 동안 하루 한 번 돎, 일곱째 날 일곱 번 돎, 라합의 가족을 살림 순이에요.",h:"정탐이 먼저예요.",
+  q:"여리고 정복 이야기를 순서대로 놓으세요.",seq:["정탐꾼들이 라합의 집에 묵음","엿새 동안 하루 한 번씩 성을 돎","일곱째 날 일곱 번 성을 돎","라합과 그 가족을 살림"]},
+ {type:"order",ref:"사무엘상 16:6-13, 23",ex:"엘리압, 아비나답, 삼마를 지나 다윗이 기름 부음을 받았고, 뒤에 사울 앞에서 수금을 탔어요.",h:"다윗은 막내였어요.",
+  q:"사무엘상 16장의 일을 순서대로 놓으세요.",seq:["엘리압이 사무엘 앞을 지나감","아비나답이 지나감","삼마가 지나감","양을 지키던 다윗이 기름 부음을 받음","다윗이 사울 앞에서 수금을 탐"]},
+ {type:"order",ref:"삼상 16:13; 17:49; 18:4; 삼하 6:7; 11:3; 12:7",ex:"기름 부음, 골리앗, 요나단의 선물, 웃사, 밧세바, 나단의 책망 순이에요.",h:"요나단과의 우정은 골리앗을 쓰러뜨린 직후에 나와요.",
+  q:"다윗에게 있었던 일을 순서대로 놓으세요.",seq:["사무엘에게 기름 부음을 받음","골리앗의 이마를 돌로 맞힘","요나단에게서 겉옷과 칼을 받음","웃사가 궤를 붙들다 죽음","밧세바가 헷 사람 우리아의 아내임을 알게 됨","나단에게 책망을 받음"]},
+ {type:"order",ref:"열왕기하 2:11, 21, 24; 4:6, 35; 5:14",ex:"엘리야의 승천, 소금으로 물을 고침, 곰 두 마리, 기름 그릇, 수넴 여인의 아들, 나아만 순이에요.",h:"소금으로 물을 고친 일은 엘리야가 떠난 직후예요.",
+  q:"엘리사의 일을 순서대로 놓으세요.",seq:["엘리야가 회오리바람으로 올라감","새 그릇의 소금으로 물을 고침","수풀에서 암곰 두 마리가 나옴","빈 그릇들에 기름이 가득 참","수넴 여인의 아들이 살아남","나아만이 요단 강에서 나음"]},
+ {type:"order",ref:"신 6:5; 34:1; 수 2:1; 6:15; 7:4; 10:12; 24:15",ex:"신명기의 쉐마와 모세의 죽음 뒤에, 여호수아서의 라합, 여리고, 아이, 기브온, 마지막 고백이 이어져요.",h:"아간의 일은 여리고 바로 다음이에요.",
+  q:"모세의 마지막 때부터 여호수아의 마지막까지 순서대로 놓으세요.",seq:["마음과 뜻과 힘을 다해 사랑하라 함","모세가 느보 산에 오름","정탐꾼이 라합의 집에 묵음","여리고 성을 일곱 번 돎","아이 성에서 패함","태양에게 기브온 위에 머무르라 함","나와 내 집은 여호와를 섬기겠다고 함"]},
+ {type:"order",ref:"사사기 13:24; 15:15; 16:4, 7, 17, 29",ex:"출생, 턱뼈, 들릴라, 새 활줄, 머리털의 비밀, 두 기둥 순이에요.",h:"삼손은 처음에 힘의 비밀을 거짓으로 말했어요.",
+  q:"삼손에게 있었던 일을 순서대로 놓으세요.",seq:["마노아의 아내가 삼손을 낳음","나귀의 새 턱뼈로 천 명을 죽임","소렉 골짜기의 들릴라를 사랑함","새 활줄 일곱으로 묶으라고 말함","머리에 삭도를 대지 않았다고 밝힘","두 기둥을 무너뜨림"]},
+ {type:"order",ref:"왕상 3:9; 6:38; 10:1; 11:3, 42; 12:20; 21:1; 왕하 22:1",ex:"듣는 마음, 성전, 스바 여왕, 후궁, 솔로몬의 죽음, 나라의 분열, 나봇, 요시야 순이에요.",h:"요시야는 열왕기하에 나와요.",
+  q:"열왕기의 사건을 나오는 순서대로 놓으세요.",seq:["솔로몬이 듣는 마음을 구함","솔로몬이 칠 년 동안 성전을 지음","스바의 여왕이 어려운 문제로 시험함","솔로몬의 후궁이 칠백 명이라 기록됨","이스라엘이 여로보암을 왕으로 삼음","아합이 나봇의 포도원을 원함","여덟 살 요시야가 왕이 됨"]},
+ {type:"order",ref:"출애굽기 2:3, 10, 21; 3:2; 14장; 15:23; 16:15; 17:7, 12",ex:"갈대 상자, 모세라는 이름, 십보라, 떨기나무, 바다, 마라, 만나, 맛사와 므리바, 아론과 훌 순이에요.",h:"반석에서 물이 난 일은 만나가 내린 다음이에요.",
+  q:"출애굽기 2~17장의 일을 순서대로 놓으세요.",seq:["갈대 상자에 아기를 담음","물에서 건져 내어 모세라 이름 지음","모세가 십보라를 아내로 맞음","떨기나무 불꽃 가운데서 부르심","바다를 마른 땅으로 건넘","마라에서 쓴 물을 만남","만나가 내림","맛사와 므리바에서 반석의 물을 마심","아론과 훌이 모세의 손을 붙듦"]},
+ {type:"order",ref:"창세기 4:2-4, 17; 6:15; 8:4, 7, 11; 9:13",ex:"가인과 아벨, 에녹 성, 방주, 아라랏 산, 까마귀, 감람나무 잎, 무지개 순이에요.",h:"노아는 까마귀를 먼저 내보냈어요.",
+  q:"창세기 4~9장의 일을 순서대로 놓으세요.",seq:["가인과 아벨이 제물을 드림","가인이 성을 쌓아 에녹이라 부름","방주의 치수를 알려 주심","방주가 아라랏 산에 머묾","노아가 까마귀를 내보냄","비둘기가 감람나무 새 잎을 물어 옴","구름 속에 무지개를 두심"]},
+ {type:"order",ref:"시편 1; 3; 23; 51; 90편",ex:"1편(복 있는 사람), 3편(압살롬을 피할 때), 23편(여호와는 나의 목자), 51편(나단이 왔을 때), 90편(모세의 기도) 순이에요.",h:"시편 번호 순서대로 놓으면 돼요.",
+  q:"시편을 번호 순서대로 놓으세요.",seq:["복 있는 사람은 악인들의 꾀를 따르지 않음","다윗이 아들 압살롬을 피할 때 지은 시","여호와는 나의 목자","나단이 다윗에게 왔을 때 지은 시","하나님의 사람 모세의 기도"]},
+ {type:"order",ref:"시편 23편",ex:"푸른 풀밭, 쉴 만한 물가, 의의 길, 음침한 골짜기, 지팡이와 막대기, 원수의 목전의 상, 넘치는 잔, 여호와의 집 순이에요.",h:"여호와의 집이 마지막이에요.",
+  q:"시편 23편에 나오는 것을 본문 순서대로 놓으세요.",seq:["푸른 풀밭","쉴 만한 물가","의의 길","사망의 음침한 골짜기","지팡이와 막대기","원수의 목전에 차린 상","넘치는 잔","여호와의 집"]},
+ {type:"order",ref:"전도서 3:2-8",ex:"날 때와 죽을 때로 시작해 전쟁할 때와 평화할 때로 끝나요.",h:"태어남과 죽음으로 시작해요.",
+  q:"전도서 3장의 '때'를 본문 순서대로 놓으세요.",seq:["날 때와 죽을 때","심을 때와 뽑을 때","죽일 때와 치료할 때","헐 때와 세울 때","울 때와 웃을 때","슬퍼할 때와 춤출 때","찾을 때와 잃을 때","찢을 때와 꿰맬 때","잠잠할 때와 말할 때","사랑할 때와 미워할 때","전쟁할 때와 평화할 때"]},
+ {type:"order",ref:"이사야 9:6",ex:"기묘자, 모사, 전능하신 하나님, 영존하시는 아버지, 평강의 왕 순이에요.",h:"평강의 왕이 마지막이에요.",
+  q:"이사야 9장 6절의 이름을 본문 순서대로 놓으세요.",seq:["기묘자","모사","전능하신 하나님","영존하시는 아버지","평강의 왕"]},
+ {type:"order",ref:"예레미야 1:1, 6, 11, 13",ex:"힐기야의 아들 소개, 나는 아이라는 대답, 살구나무 가지, 끓는 가마 순이에요.",h:"환상 두 가지 가운데 나무가 먼저예요.",
+  q:"예레미야 1장의 내용을 순서대로 놓으세요.",seq:["아나돗의 제사장 힐기야의 아들로 소개됨","나는 아이라 말할 줄을 알지 못한다고 함","살구나무 가지를 봄","끓는 가마를 봄"]},
+ {type:"order",ref:"호세아 1:3-9",ex:"고멜과 결혼, 이스르엘, 로루하마, 로암미 순이에요.",h:"딸은 두 아들 사이에 태어났어요.",
+  q:"호세아 1장의 일을 순서대로 놓으세요.",seq:["디블라임의 딸 고멜을 아내로 맞음","아들 이스르엘을 낳음","딸 로루하마를 낳음","아들 로암미를 낳음"]},
+
+ // ── 바르게 짝짓기 ──
+ {type:"match",ref:"레위기 23장",ex:"유월절은 첫째 달 열나흗날 저녁, 무교절은 열닷샛날부터 이레, 속죄일은 일곱째 달 열흘날, 초막절은 일곱째 달 열닷샛날부터 이레예요.",h:"유월절 다음 날부터 무교절이 시작돼요.",
+  q:"절기와 날짜를 바르게 짝지으세요.",L:"절기",R:"날짜",pairs:[["유월절","첫째 달 열나흗날 저녁"],["무교절","첫째 달 열닷샛날부터 이레"],["속죄일","일곱째 달 열흘날"],["초막절","일곱째 달 열닷샛날부터 이레"],["안식일","일곱째 날"],["나팔을 불어 기념하는 날","일곱째 달 첫 날"]]},
+ {type:"match",ref:"레위기 23:5-16; 25:4, 10",ex:"일곱째 해는 땅의 안식, 오십 년째는 희년, 일곱째 달 열흘날은 속죄일과 희년의 나팔, 오십 일은 새 소제예요.",h:"희년은 일곱 안식년이 지난 다음 해예요.",
+  q:"수와 그에 관한 율법을 바르게 짝지으세요.",L:"수",R:"율법",pairs:[["일곱째 해","땅을 쉬게 하는 해"],["오십 년째 해","희년"],["일곱째 달 열흘날","속죄일"],["첫째 달 열나흗날","유월절"],["오십 일","새 소제를 드리기까지 세는 날"],["이레","무교절을 지키는 기간"]]},
+ {type:"match",ref:"왕하 22:1; 왕상 21:2; 스 1:1; 민 22:4; 단 3:1; 왕상 11:3; 행 12:2",ex:"요시야는 여덟 살 왕, 아합은 나봇의 포도원, 고레스는 조서, 발락은 발람, 느부갓네살은 금 신상, 헤롯은 야고보를 죽였어요.",h:"성전 건축 조서를 내린 왕은 바사 왕이에요.",
+  q:"왕과 그에 관한 일을 바르게 짝지으세요.",L:"왕",R:"일",pairs:[["요시야","여덟 살에 왕이 됨"],["아합","나봇의 포도원을 원함"],["고레스","성전을 건축하라는 조서를 내림"],["발락","발람을 불러 저주하게 함"],["느부갓네살","두라 평지에 금 신상을 세움"],["솔로몬","후궁 칠백 명"],["헤롯(사도행전 12장)","요한의 형제 야고보를 칼로 죽임"]]},
+ {type:"match",ref:"삿 16:4; 왕상 21:8; 왕하 22:14; 왕상 10:1; 출 2:21; 행 12:13; 눅 2:36; 딤후 1:5",ex:"들릴라는 소렉 골짜기, 이세벨은 편지, 훌다는 여선지자, 스바 여왕은 어려운 문제, 십보라는 모세의 아내, 로데는 베드로를 맞은 아이, 안나는 아셀 지파, 로이스는 디모데의 외조모예요.",h:"로데는 베드로가 문을 두드릴 때 나온 여자아이예요.",
+  q:"여인과 그에 관한 내용을 바르게 짝지으세요.",L:"여인",R:"내용",pairs:[["들릴라","소렉 골짜기의 여인"],["이세벨","아합의 이름으로 편지를 씀"],["훌다","살룸의 아내인 여선지자"],["스바의 여왕","어려운 문제로 솔로몬을 시험함"],["십보라","모세의 아내"],["로데","베드로가 문을 두드릴 때 나온 아이"],["안나","아셀 지파의 여선지자"],["로이스","디모데의 외조모"]]},
+ {type:"match",ref:"수 7:21; 삼하 6:7; 11:3, 14; 왕상 21:13; 왕하 22:8, 10; 행 19:24",ex:"아간은 물건을 감춤, 웃사는 궤를 붙듦, 우리아는 헷 사람, 요압은 편지를 받음, 나봇은 돌에 맞음, 힐기야는 율법책 발견, 사반은 율법책 낭독, 데메드리오는 은장색이에요.",h:"힐기야는 책을 찾았고, 사반은 읽었어요.",
+  q:"사람과 그에 관한 일을 바르게 짝지으세요.",L:"사람",R:"일",pairs:[["아간","외투와 은과 금을 장막에 감춤"],["웃사","하나님의 궤를 붙들다 죽음"],["우리아","밧세바의 남편인 헷 사람"],["요압","다윗의 편지를 받은 군대 장관"],["나봇","거짓 증언으로 돌에 맞아 죽음"],["힐기야","성전에서 율법책을 발견함"],["사반","율법책을 왕 앞에서 읽음"],["데메드리오","아데미 신상 모형을 만든 은장색"]]},
+ {type:"match",ref:"신 34:1; 수 7:26; 삿 16:4; 단 3:1; 느 8:1; 왕상 21:1; 창 8:4; 욥 1:1; 출 17:7",ex:"느보 산은 모세, 아골 골짜기는 아간, 소렉 골짜기는 들릴라, 두라 평지는 금 신상, 수문 앞 광장은 율법 낭독, 이스르엘은 나봇, 아라랏 산은 방주, 우스는 욥, 맛사와 므리바는 반석의 물이에요.",h:"방주가 머문 산 이름은 아라랏이에요.",
+  q:"구약의 장소와 그곳에서 있었던 일을 바르게 짝지으세요.",L:"장소",R:"있었던 일",pairs:[["느보 산","모세가 올라가 땅을 바라봄"],["아골 골짜기","아간의 일"],["소렉 골짜기","들릴라가 살던 곳"],["두라 평지","금 신상을 세움"],["수문 앞 광장","에스라가 율법책을 읽음"],["이스르엘","나봇의 포도원"],["아라랏 산","방주가 머묾"],["우스","욥이 살던 땅"],["맛사와 므리바","반석에서 물이 남"]]},
+ {type:"match",ref:"신 34:7; 수 24:29; 왕하 22:1; 왕상 11:42; 11:3; 삿 16:5; 왕하 2:24; 창 9:29; 시 90:10; 욥 42:16",ex:"120은 모세, 110은 여호수아, 8은 요시야, 40은 솔로몬의 통치, 700은 후궁, 1100은 방백의 은, 42는 곰에게 찢긴 아이, 950은 노아, 70은 우리의 연수, 140은 욥이에요.",h:"시편 90편에서 우리의 연수는 칠십, 강건하면 팔십이에요.",
+  q:"구약에 나오는 수와 그 내용을 바르게 짝지으세요.",L:"수",R:"내용",pairs:[["120","모세가 죽을 때의 나이"],["110","여호수아가 죽을 때의 나이"],["8","요시야가 왕이 된 나이"],["40","솔로몬이 다스린 햇수"],["700","솔로몬의 후궁 수"],["1100","방백들이 들릴라에게 준다던 은"],["42","곰에게 찢긴 아이들"],["950","노아가 산 햇수"],["70","시편 90편의 우리의 연수"],["140","회복 후 욥이 산 햇수"]]},
+ {type:"match",ref:"잠 6:6; 약 3:3-6; 벧전 5:8; 사 40:31; 시 1:3; 렘 18:6; 시 90:4",ex:"개미는 게으른 자가 배울 대상, 우는 사자는 마귀, 독수리는 여호와를 앙망하는 자, 시냇가의 나무는 복 있는 사람, 진흙은 이스라엘, 지나간 어제는 천 년이에요.",h:"천 년이 주의 목전에서는 지나간 어제 같다고 했어요.",
+  q:"비유와 그것이 가리키는 대상을 바르게 짝지으세요.",L:"비유",R:"가리키는 대상",pairs:[["개미","게으른 자가 보고 배울 것"],["우는 사자","마귀"],["독수리가 날개치며 올라감","여호와를 앙망하는 자"],["시냇가에 심은 나무","복 있는 사람"],["토기장이 손의 진흙","이스라엘"],["지나간 어제","주의 목전의 천 년"],["말의 재갈과 배의 키","혀"]]},
+ {type:"match",ref:"잠 31:1; 호 1:3; 눅 2:36; 딤후 1:5; 행 19:24; 막 10:46; 눅 24:18; 왕하 22:14; 스 1:1; 민 22:4; 수 7:1",ex:"르무엘은 잠언, 고멜은 호세아, 안나와 글로바는 누가복음, 로이스는 디모데후서, 데메드리오는 사도행전, 바디매오는 마가복음이에요.",h:"르무엘 왕의 말씀은 잠언 마지막 장에 나와요.",
+  q:"인물과 그 인물이 나오는 책을 바르게 짝지으세요.",L:"인물",R:"책",pairs:[["르무엘","잠언"],["고멜","호세아"],["안나","누가복음"],["로이스","디모데후서"],["데메드리오","사도행전"],["바디매오","마가복음"],["훌다","열왕기하"],["고레스(조서)","에스라"],["발락","민수기"],["아간","여호수아"]]},
+ {type:"match",ref:"시편 3; 23; 51; 90편 표제",ex:"3편은 압살롬을 피할 때, 23편은 다윗의 시, 51편은 나단이 왔을 때, 90편은 모세의 기도예요.",h:"모세의 이름이 붙은 시편이 하나 있어요.",
+  q:"시편과 그 표제를 바르게 짝지으세요.",L:"시편",R:"표제",pairs:[["시편 3편","다윗이 아들 압살롬을 피할 때"],["시편 23편","다윗의 시"],["시편 51편","선지자 나단이 다윗에게 왔을 때"],["시편 90편","하나님의 사람 모세의 기도"]]},
+ {type:"match",ref:"렘 1:11, 13; 18:2; 암 7:8; 겔 37:16; 사 6:6; 호 1:4-9",ex:"살구나무 가지, 끓는 가마, 토기장이의 집은 예레미야, 다림줄은 아모스, 두 막대기는 에스겔, 핀 숯은 이사야, 자녀의 이름은 호세아예요.",h:"예레미야는 환상 두 가지를 연달아 봤어요.",
+  q:"선지자가 보거나 받은 것과 그 선지자를 바르게 짝지으세요.",L:"본 것·받은 것",R:"선지자",pairs:[["살구나무 가지","예레미야"],["끓는 가마","예레미야"],["토기장이의 집","예레미야"],["다림줄","아모스"],["두 막대기","에스겔"],["제단의 핀 숯","이사야"],["이스르엘, 로루하마, 로암미","호세아"]]},
+ {type:"match",ref:"암 7:14; 행 19:24; 왕하 22:8, 10, 14; 느 8:9; 눅 2:36; 마 4:18; 막 10:46",ex:"아모스는 목자이자 뽕나무 재배자, 데메드리오는 은장색, 사반은 서기관, 힐기야는 대제사장, 훌다와 안나는 여선지자, 에스라는 제사장이자 학사예요.",h:"아모스는 자신이 선지자의 아들이 아니라고 했어요.",
+  q:"구약과 복음서에 나오는 사람과 직업(신분)을 바르게 짝지으세요.",L:"사람",R:"직업·신분",pairs:[["아모스","목자이며 뽕나무를 재배하는 자"],["데메드리오","은장색"],["사반","서기관"],["힐기야","대제사장"],["훌다","여선지자"],["에스라","제사장이자 학사"],["시몬과 안드레","바다에 그물을 던지는 어부"],["바디매오","맹인 거지"]]},
+ {type:"match",ref:"출 2:10, 22; 요 9:7; 창 4:17",ex:"모세는 물에서 건져 냄, 게르솜은 타국에서 나그네가 됨, 실로암은 보냄을 받았다, 에녹 성은 가인의 아들 이름을 딴 것이에요.",h:"실로암의 뜻은 요한복음 9장 괄호에 나와요.",
+  q:"이름과 그 이름이 붙은 까닭(뜻)을 바르게 짝지으세요.",L:"이름",R:"까닭·뜻",pairs:[["모세","물에서 건져 내었음"],["게르솜","타국에서 나그네가 되었음"],["실로암","보냄을 받았다는 뜻"],["에녹(가인의 성)","가인의 아들 이름을 땀"]]},
+ {type:"match",ref:"욥기 42:12",ex:"회복 후 욥은 양 만 사천, 낙타 육천, 소 천 겨리, 암나귀 천을 두었어요.",h:"모두 처음 재산의 두 배예요.",
+  q:"회복 후 욥이 가진 가축과 그 수를 바르게 짝지으세요.",L:"가축",R:"수",pairs:[["양","만 사천"],["낙타","육천"],["소","천 겨리"],["암나귀","천"]]},
+ {type:"match",ref:"욥기 1:2-3",ex:"욥은 아들 일곱, 딸 셋, 양 칠천, 낙타 삼천, 소 오백 겨리, 암나귀 오백을 두었어요.",h:"회복 뒤의 수의 절반이에요.",
+  q:"욥기 1장에서 욥이 처음 가졌던 것과 그 수를 바르게 짝지으세요.",L:"가진 것",R:"수",pairs:[["양","칠천"],["낙타","삼천"],["소","오백 겨리"],["암나귀","오백"],["아들","일곱"],["딸","셋"]]},
+ {type:"match",ref:"민 22:4-5; 렘 1:1; 수 7:1; 호 1:3; 삼하 11:3; 출 2:18, 21",ex:"발락은 십볼, 발람은 브올, 예레미야는 힐기야, 아간은 갈미, 고멜은 디블라임, 밧세바는 엘리암, 십보라는 르우엘의 자녀예요.",h:"예레미야의 아버지는 요시야 때의 대제사장과 이름이 같아요.",
+  q:"인물과 그 아버지를 바르게 짝지으세요.",L:"인물",R:"아버지",pairs:[["발락","십볼"],["발람","브올"],["예레미야","힐기야"],["아간","갈미"],["고멜","디블라임"],["밧세바","엘리암"],["십보라","르우엘"]]},
+ {type:"match",ref:"삼상 16:6; 18:4; 삼하 11:3, 14; 6:7; 시 3편 표제; 삼상 17:4",ex:"엘리압은 다윗의 형, 요나단은 겉옷과 칼을 준 친구, 우리아는 밧세바의 남편, 요압은 군대 장관, 웃사는 궤를 붙든 사람, 압살롬은 다윗이 피한 아들, 골리앗은 가드 사람이에요.",h:"시편 3편 표제에 다윗의 아들 이름이 나와요.",
+  q:"다윗과 관련된 사람과 그 관계를 바르게 짝지으세요.",L:"사람",R:"다윗과의 관계",pairs:[["엘리압","다윗의 형"],["요나단","겉옷과 칼을 준 사람"],["우리아","밧세바의 남편"],["요압","다윗의 편지를 받은 군대 장관"],["압살롬","다윗이 피해 도망한 아들"],["골리앗","다윗과 싸운 가드 사람"]]},
+ {type:"match",ref:"출 2:3, 21-22; 17:9-12; 신 34:1, 9",ex:"십보라는 아내, 게르솜은 아들, 아론과 훌은 손을 붙든 사람, 여호수아는 아말렉과 싸우고 뒤를 이은 사람, 느보 산은 마지막에 오른 산, 갈대 상자는 아기 때 담긴 것이에요.",h:"모세의 뒤를 이은 사람은 아말렉과 싸운 사람과 같아요.",
+  q:"모세와 관련된 것과 그 관계를 바르게 짝지으세요.",L:"사람·것",R:"모세와의 관계",pairs:[["십보라","모세의 아내"],["게르솜","모세의 아들"],["아론과 훌","모세의 손을 붙든 사람들"],["여호수아","모세에게 안수받아 뒤를 이은 사람"],["느보 산","모세가 마지막으로 오른 산"],["갈대 상자","아기 모세를 담은 것"]]},
+ {type:"match",ref:"신명기 6; 34장; 여호수아 6; 7장; 사사기 16장; 사무엘상 16; 18장; 사무엘하 11장",ex:"쉐마는 신명기 6장, 모세의 죽음은 34장, 여리고는 여호수아 6장, 아간은 7장, 들릴라는 사사기 16장, 기름 부음은 사무엘상 16장, 요나단은 18장, 밧세바는 사무엘하 11장이에요.",h:"신명기는 34장으로 끝나요.",
+  q:"사건과 그것이 기록된 장을 바르게 짝지으세요.",L:"사건",R:"장",pairs:[["마음과 뜻과 힘을 다해 사랑하라","신명기 6장"],["모세의 죽음","신명기 34장"],["여리고 성이 무너짐","여호수아 6장"],["아간의 죄","여호수아 7장"],["삼손과 들릴라","사사기 16장"],["다윗이 기름 부음을 받음","사무엘상 16장"],["요나단이 다윗을 사랑함","사무엘상 18장"],["밧세바와 우리아","사무엘하 11장"]]},
+ {type:"match",ref:"신명기~말라기",ex:"쉐마는 신명기, 절기와 희년은 레위기, 나봇은 열왕기상, 요시야는 열왕기하, 율법 낭독은 느헤미야, 고레스 조서는 에스라, 죽으면 죽으리라는 에스더, 개미는 잠언이에요.",h:"나귀 새끼를 타고 오는 왕은 스가랴에 나와요.",
+  q:"내용과 그것이 나오는 구약의 책을 바르게 짝지으세요.",L:"내용",R:"책",pairs:[["마음과 뜻과 힘을 다하여","신명기"],["절기와 희년","레위기"],["나봇의 포도원","열왕기상"],["요시야와 율법책","열왕기하"],["수문 앞 광장의 율법 낭독","느헤미야"],["고레스의 조서","에스라"],["죽으면 죽으리이다","에스더"],["게으른 자여 개미에게 가서","잠언"],["헛되고 헛되며","전도서"],["토기장이의 집","예레미야"],["다림줄","아모스"],["나귀 새끼를 타고 오는 왕","스가랴"],["온전한 십일조","말라기"]]}
+];
+
+const NT3=[
+ // ── 본문 읽기 ──
+ {type:"verse",l:["jhn",9,7],ref:"요한복음 9:7",q:"이 구절에서 '실로암'의 뜻으로 풀이된 것은?",
+  a:["보냄을 받았다","하나님이 들으심","평안","샘이 솟는 곳","씻음","빛"],ex:"실로암은 번역하면 보냄을 받았다는 뜻이라고 본문 괄호에 나와요.",h:"구절 안 괄호를 보세요."},
+
+ // ── 모두 고르기 ──
+ {type:"multi",ref:"마태복음 13:4-8",ex:"씨는 길가, 돌밭, 가시떨기, 좋은 땅에 떨어졌어요.",h:"네 곳이에요.",
+  q:"씨 뿌리는 비유에서 씨가 떨어진 곳을 모두 고르세요.",yes:["길가","돌밭","가시떨기","좋은 땅"],no:["물가","지붕 위","포도원","무덤가"]},
+ {type:"multi",ref:"마태복음 13장",ex:"13장에는 씨 뿌리는 자, 가라지, 겨자씨, 누룩, 감추인 보화, 진주, 그물 비유가 나와요.",h:"모두 '천국은 ~와 같다'는 비유들이에요.",
+  q:"마태복음 13장에 나오는 비유를 모두 고르세요.",yes:["씨 뿌리는 자","가라지","겨자씨","누룩","감추인 보화","진주","그물"],no:["선한 사마리아 사람","열 처녀","달란트","돌아온 둘째 아들"]},
+ {type:"multi",ref:"마태복음 25:1-30",ex:"열 처녀 가운데 다섯은 슬기 있고 다섯은 미련했으며, 종들은 다섯, 둘, 한 달란트를 받았고 한 달란트 받은 종은 땅에 감추었어요.",h:"처녀의 수와 달란트의 수에 주의하세요.",
+  q:"마태복음 25장에 나오는 것을 모두 고르세요.",yes:["열 처녀","그릇에 담은 기름","다섯 달란트","두 달란트","땅에 감춘 한 달란트"],no:["일곱 처녀","열 므나","세 달란트","등잔대 일곱"]},
+ {type:"multi",ref:"고린도전서 12:15-21",ex:"몸의 비유에는 발, 손, 귀, 눈, 냄새 맡는 곳, 머리가 나와요.",h:"얼굴에 있는 지체가 여러 개 나와요.",
+  q:"고린도전서 12장 몸의 비유에 나오는 지체를 모두 고르세요.",yes:["발","손","귀","눈","냄새 맡는 곳","머리"],no:["심장","무릎","어깨","허리"]},
+ {type:"multi",ref:"고린도후서 12:2-9",ex:"바울은 셋째 하늘과 낙원에 이끌려 갔고, 육체에 가시를 받아 세 번 간구했으며, 주님은 내 은혜가 네게 족하다고 하셨어요.",h:"간구한 횟수는 세 번이에요.",
+  q:"고린도후서 12장의 내용으로 맞는 것을 모두 고르세요.",yes:["셋째 하늘","낙원","육체의 가시","세 번 간구함","내 은혜가 네게 족하다"],no:["일곱 번 간구함","둘째 하늘","다메섹의 빛","눈이 멂"]},
+ {type:"multi",ref:"히브리서 11장",ex:"아벨, 에녹, 노아, 아브라함, 사라, 이삭, 야곱, 요셉, 모세, 라합 등이 믿음으로 한 일이 기록되어 있어요.",h:"믿음의 선진 명단에 악한 왕들은 없어요.",
+  q:"히브리서 11장에서 '믿음으로' 한 일과 함께 이름이 나오는 사람을 모두 고르세요.",yes:["아벨","에녹","노아","아브라함","사라","이삭","야곱","요셉","모세","라합"],no:["사울","아합","압살롬","이세벨"]},
+ {type:"multi",ref:"요한계시록 21:12-21",ex:"성에는 열두 지파의 이름이 쓰인 열두 문, 열두 사도의 이름이 있는 열두 기초석이 있고, 문은 진주, 길은 정금이에요.",h:"열둘이라는 수가 여러 번 나와요.",
+  q:"새 예루살렘(요한계시록 21장)에 대한 설명으로 맞는 것을 모두 고르세요.",yes:["열두 문","문 위에 쓴 열두 지파의 이름","열두 기초석","기초석 위의 열두 사도의 이름","진주로 된 문","정금으로 된 길"],no:["일곱 문","은으로 된 길","일곱 기초석","백향목으로 된 문"]},
+ {type:"multi",ref:"사도행전 12:2-13",ex:"헤롯이 요한의 형제 야고보를 칼로 죽였고, 베드로는 군인 넷씩 네 패에게 지켜지다 풀려나 마가 요한의 어머니 마리아의 집에 갔으며, 로데가 문에 나왔어요.",h:"베드로를 맞은 아이의 이름이 나와요.",
+  q:"사도행전 12장에 나오는 것을 모두 고르세요.",yes:["칼에 죽은 야고보","헤롯 왕","네 명씩 네 패의 군인","마가 요한의 어머니 마리아의 집","로데"],no:["스데반","빌라도","루디아의 집","군인 일곱"]},
+ {type:"multi",ref:"사도행전 19:9-28",ex:"바울은 두란노 서원에서 두 해 동안 강론했고, 은장색 데메드리오가 아데미 신상 모형 때문에 소동을 일으켰어요.",h:"에베소의 여신 이름이 나와요.",
+  q:"사도행전 19장 에베소 이야기에 나오는 것을 모두 고르세요.",yes:["두란노 서원","두 해","은장색 데메드리오","아데미"],no:["아레오바고","루디아","알지 못하는 신에게","독사"]},
+ {type:"multi",ref:"빌립보서 4:4-13",ex:"주 안에서 항상 기뻐하라, 아무것도 염려하지 말고 감사함으로 아뢰라, 능력 주시는 자 안에서 모든 것을 할 수 있다는 말씀이 있어요.",h:"다른 서신의 유명한 권면이 섞여 있어요.",
+  q:"빌립보서 4장에 나오는 권면이나 고백을 모두 고르세요.",yes:["주 안에서 항상 기뻐하라","아무것도 염려하지 말라","감사함으로 하나님께 아뢰라","능력 주시는 자 안에서 모든 것을 할 수 있다"],no:["쉬지 말고 기도하라","범사에 감사하라","몸을 산 제물로 드리라","전신 갑주를 입으라"]},
+ {type:"multi",ref:"마가복음 10:46-50",ex:"여리고에서 디매오의 아들 바디매오가 다윗의 자손 예수여 하고 외쳤고, 부르심을 받자 겉옷을 내버리고 나아갔어요.",h:"맹인이 예수를 부른 호칭이 나와요.",
+  q:"바디매오 이야기에 나오는 것을 모두 고르세요.",yes:["여리고","디매오의 아들","다윗의 자손 예수여","겉옷을 내버림"],no:["베데스다","실로암","서른여덟 해","진흙"]},
+ {type:"multi",ref:"요한복음 5:2-8",ex:"예루살렘 양문 곁 베데스다 못에는 행각 다섯이 있었고, 서른여덟 해 된 병자에게 예수께서 일어나 자리를 들고 걸어가라 하셨어요.",h:"못 이름은 히브리 말로 베데스다예요.",
+  q:"요한복음 5장 베데스다 이야기에 나오는 것을 모두 고르세요.",yes:["양문","행각 다섯","서른여덟 해","자리를 들고 걸어가라"],no:["실로암","열두 해","진흙","겉옷을 내버림"]},
+ {type:"multi",ref:"누가복음 24:13-31",ex:"두 제자가 예루살렘에서 이십오 리 떨어진 엠마오로 가다가 예수를 만났고, 그중 한 사람은 글로바였으며, 떡을 떼어 주실 때 눈이 밝아졌어요.",h:"제자 한 사람의 이름이 나와요.",
+  q:"엠마오 이야기에 나오는 것을 모두 고르세요.",yes:["엠마오","이십오 리","글로바","떡을 떼어 주실 때 알아봄"],no:["베다니","오십 리","도마","물고기를 잡을 때 알아봄"]},
+ {type:"multi",ref:"마태복음 4:18-22",ex:"시몬과 안드레는 바다에 그물을 던지고 있었고, 야고보와 요한은 아버지 세베대와 함께 배에서 그물을 깁고 있었어요.",h:"형제 두 쌍이에요.",
+  q:"마태복음 4장에서 예수께서 처음 부르신 제자를 모두 고르세요.",yes:["시몬","안드레","야고보","요한"],no:["마태","빌립","세베대","나다나엘"]},
+
+ // ── 순서 배열 ──
+ {type:"order",ref:"마태복음 13장",ex:"씨 뿌리는 자, 가라지, 겨자씨, 누룩, 감추인 보화, 진주, 그물 순이에요.",h:"그물 비유가 마지막이에요.",
+  q:"마태복음 13장의 비유를 본문 순서대로 놓으세요.",seq:["씨 뿌리는 자","가라지","겨자씨","누룩","감추인 보화","진주","그물"]},
+ {type:"order",ref:"마태복음 13:4-8",ex:"길가, 돌밭, 가시떨기, 좋은 땅 순이에요.",h:"좋은 땅이 마지막이에요.",
+  q:"씨 뿌리는 비유에서 씨가 떨어진 곳을 본문 순서대로 놓으세요.",seq:["길가","돌밭","가시떨기","좋은 땅"]},
+ {type:"order",ref:"히브리서 11장",ex:"아벨, 에녹, 노아, 아브라함, 사라, 이삭, 야곱, 요셉, 모세, 라합 순이에요.",h:"창세기에 나오는 순서와 거의 같아요.",
+  q:"히브리서 11장의 믿음의 인물을 나오는 순서대로 놓으세요.",seq:["아벨","에녹","노아","아브라함","사라","이삭","야곱","요셉","모세","라합"]},
+ {type:"order",ref:"디모데후서 3:16",ex:"교훈, 책망, 바르게 함, 의로 교육 순이에요.",h:"교훈으로 시작해요.",
+  q:"성경이 유익하다고 한 네 가지를 본문 순서대로 놓으세요.",seq:["교훈","책망","바르게 함","의로 교육"]},
+ {type:"order",ref:"고린도전서 12:28",ex:"첫째 사도, 둘째 선지자, 셋째 교사, 그 다음 능력을 행하는 자 순이에요.",h:"사도가 첫째예요.",
+  q:"고린도전서 12장 28절에서 하나님이 교회에 세우신 것을 순서대로 놓으세요.",seq:["사도","선지자","교사","능력을 행하는 자"]},
+ {type:"order",ref:"사도행전 12:2-13",ex:"야고보의 죽음, 베드로의 투옥, 마리아의 집, 로데 순이에요.",h:"로데는 베드로가 문을 두드린 뒤에 나와요.",
+  q:"사도행전 12장의 일을 순서대로 놓으세요.",seq:["헤롯이 야고보를 칼로 죽임","베드로가 군인 네 패에게 지켜짐","베드로가 마리아의 집에 감","로데가 문에 나옴"]},
+ {type:"order",ref:"막 10:46; 눅 24:13; 요 5:5; 9:7; 13:5",ex:"바디매오(마가 10장), 엠마오(누가 24장), 베데스다(요한 5장), 실로암(요한 9장), 세족(요한 13장) 순이에요.",h:"복음서 순서는 마태, 마가, 누가, 요한이에요.",
+  q:"신약에 나오는 순서대로 놓으세요.",seq:["바디매오가 겉옷을 내버림","엠마오로 가는 두 제자","베데스다의 서른여덟 해 된 병자","실로암에 가서 씻은 맹인","제자들의 발을 씻기심"]},
+ {type:"order",ref:"요한계시록 21:12-22:13",ex:"열두 문, 열두 기초석, 만 이천 스다디온, 진주 문, 생명나무, 알파와 오메가 순이에요.",h:"생명나무는 22장에 나와요.",
+  q:"요한계시록 21~22장의 내용을 나오는 순서대로 놓으세요.",seq:["열두 지파의 이름이 쓰인 열두 문","열두 사도의 이름이 있는 기초석","만 이천 스다디온","진주 한 개로 된 문","열두 가지 열매를 맺는 생명나무","나는 알파와 오메가"]},
+
+ // ── 바르게 짝짓기 ──
+ {type:"match",ref:"눅 24:13; 요 5:2; 9:7; 행 19:9; 막 10:46; 고후 12:2; 행 12:12",ex:"엠마오는 두 제자, 베데스다는 서른여덟 해 병자, 실로암은 맹인, 두란노 서원은 바울의 강론, 여리고는 바디매오, 셋째 하늘은 바울, 마리아의 집은 베드로예요.",h:"맹인이 씻은 못은 '보냄을 받았다'는 뜻이에요.",
+  q:"신약의 장소와 그곳에서 있었던 일을 바르게 짝지으세요.",L:"장소",R:"있었던 일",pairs:[["엠마오","두 제자가 떡을 떼실 때 예수를 알아봄"],["베데스다","서른여덟 해 된 병자가 일어남"],["실로암","맹인이 씻고 보게 됨"],["두란노 서원","바울이 두 해 동안 강론함"],["여리고","바디매오가 외침"],["셋째 하늘","바울이 이끌려 감"],["마가 요한의 어머니 집","풀려난 베드로가 찾아감"]]},
+ {type:"match",ref:"요 5:5; 눅 2:37; 요 6:7; 행 12:4; 약 5:17; 계 21:16; 눅 24:13; 행 19:10; 고후 12:8",ex:"38은 베데스다 병자, 84는 안나, 200은 빌립의 데나리온, 16은 베드로를 지킨 군인, 3년 6개월은 엘리야의 기도, 12000은 새 예루살렘, 25리는 엠마오, 2년은 두란노, 3번은 바울의 간구예요.",h:"베드로는 넷씩 네 패, 모두 열여섯 명에게 지켜졌어요.",
+  q:"신약에 나오는 수와 그 내용을 바르게 짝지으세요.",L:"수",R:"내용",pairs:[["서른여덟 해","베데스다의 병자가 앓은 기간"],["팔십사 세","여선지자 안나의 나이"],["이백 데나리온","빌립이 부족하다고 한 떡값"],["열여섯 명","베드로를 지킨 군인"],["삼 년 육 개월","엘리야의 기도로 비가 오지 않은 기간"],["만 이천 스다디온","새 예루살렘의 길이"],["이십오 리","예루살렘에서 엠마오까지"],["두 해","두란노 서원에서 강론한 기간"],["세 번","바울이 가시를 떠나게 해 달라고 간구한 횟수"]]},
+ {type:"match",ref:"마 13:4-8",ex:"길가는 새, 돌밭은 뿌리가 없어 마름, 가시떨기는 기운이 막힘, 좋은 땅은 백 배, 육십 배, 삼십 배의 결실이에요.",h:"돌밭의 싹은 해가 돋자 말라 버렸어요.",
+  q:"씨가 떨어진 곳과 그 결과를 바르게 짝지으세요.",L:"떨어진 곳",R:"결과",pairs:[["길가","새들이 와서 먹어 버림"],["돌밭","뿌리가 없어 말라 버림"],["가시떨기","가시가 자라 기운을 막음"],["좋은 땅","백 배, 육십 배, 삼십 배의 결실"]]},
+ {type:"match",ref:"마태복음 25:1-30",ex:"다섯 달란트 받은 종은 다섯을, 두 달란트 받은 종은 둘을 더 남겼고, 한 달란트 받은 종은 땅에 감추었어요. 슬기 있는 처녀는 그릇에 기름을 담았어요.",h:"한 달란트 받은 종은 악하고 게으른 종이라 불렸어요.",
+  q:"마태복음 25장의 인물과 그가 한 일을 바르게 짝지으세요.",L:"인물",R:"한 일",pairs:[["다섯 달란트 받은 종","다섯 달란트를 더 남김"],["두 달란트 받은 종","두 달란트를 더 남김"],["한 달란트 받은 종","땅을 파고 감추어 둠"],["슬기 있는 처녀들","그릇에 기름을 담아 감"],["미련한 처녀들","기름을 가지지 않음"]]},
+ {type:"match",ref:"요한계시록 21:12-21; 22:2",ex:"문은 열두 지파의 이름과 진주, 기초석은 열두 사도의 이름, 길은 정금, 성의 길이는 만 이천 스다디온, 생명나무는 열두 가지 열매예요.",h:"문 위에는 지파의 이름, 기초석에는 사도의 이름이 있어요.",
+  q:"새 예루살렘의 부분과 그 설명을 바르게 짝지으세요.",L:"부분",R:"설명",pairs:[["문 위의 이름","이스라엘 열두 지파"],["기초석 위의 이름","어린 양의 열두 사도"],["각 문","진주 한 개"],["성의 길","맑은 유리 같은 정금"],["성의 길이와 너비와 높이","만 이천 스다디온"],["생명나무","열두 가지 열매"]]},
+ {type:"match",ref:"막 10:46; 눅 24:18; 요 5:5; 13:5; 행 12:13; 19:24; 롬 12:1; 고전 12:15; 고후 12:7; 딤후 1:5; 히 11장; 약 3:3; 벧전 5:8; 계 21장",ex:"바디매오는 마가복음, 글로바는 누가복음, 베데스다와 세족은 요한복음, 로데와 데메드리오는 사도행전, 산 제물은 로마서, 지체는 고린도전서, 육체의 가시는 고린도후서예요.",h:"육체의 가시는 고린도에 보낸 두 번째 편지에 있어요.",
+  q:"내용과 그것이 나오는 신약의 책을 바르게 짝지으세요.",L:"내용",R:"책",pairs:[["바디매오","마가복음"],["글로바","누가복음"],["베데스다 못","요한복음"],["로데","사도행전"],["거룩한 산 제물","로마서"],["몸과 지체","고린도전서"],["육체의 가시","고린도후서"],["로이스와 유니게","디모데후서"],["믿음의 선진들","히브리서"],["말의 재갈과 배의 키","야고보서"],["우는 사자 같은 마귀","베드로전서"],["새 예루살렘","요한계시록"]]},
+ {type:"match",ref:"벧전 5:8; 롬 12:1; 약 3:3-4; 계 21:21; 22:13",ex:"우는 사자는 마귀, 산 제물은 우리 몸, 재갈과 키는 혀, 진주 한 개는 성의 문, 알파와 오메가는 말씀하시는 주님 자신이에요.",h:"영적 예배로 드리라는 것은 몸이에요.",
+  q:"신약의 표현과 그것이 가리키는 것을 바르게 짝지으세요.",L:"표현",R:"가리키는 것",pairs:[["우는 사자","대적 마귀"],["거룩한 산 제물","너희 몸"],["말의 재갈과 배의 키","혀"],["진주 한 개","새 예루살렘의 각 문"],["알파와 오메가","말씀하시는 주님 자신"]]},
+ {type:"match",ref:"마태복음 13; 25장; 마가복음 10장; 누가복음 24장; 요한복음 5; 9; 13장; 사도행전 12; 19장; 요한계시록 21장",ex:"씨 뿌리는 비유는 마태 13장, 열 처녀는 25장, 바디매오는 마가 10장, 엠마오는 누가 24장, 베데스다는 요한 5장, 실로암은 9장, 세족은 13장, 로데는 사도행전 12장, 데메드리오는 19장이에요.",h:"엠마오 이야기는 누가복음 마지막 장에 있어요.",
+  q:"신약의 사건과 그것이 기록된 장을 바르게 짝지으세요.",L:"사건",R:"장",pairs:[["씨 뿌리는 비유","마태복음 13장"],["열 처녀 비유","마태복음 25장"],["바디매오","마가복음 10장"],["엠마오로 가는 제자들","누가복음 24장"],["베데스다 못","요한복음 5장"],["실로암 못","요한복음 9장"],["제자들의 발을 씻기심","요한복음 13장"],["로데가 문에 나옴","사도행전 12장"],["은장색 데메드리오","사도행전 19장"],["새 예루살렘","요한계시록 21장"]]}
+];
+
+const BOTH3=[
+ {type:"match",ref:"살전 5:16; 빌 4:13; 롬 12:1; 요 13:34; 합 2:4; 신 6:5; 딤후 3:16",ex:"항상 기뻐하라는 데살로니가전서, 모든 것을 할 수 있다는 빌립보서, 산 제물은 로마서, 새 계명은 요한복음, 의인은 믿음으로는 하박국, 마음과 뜻과 힘은 신명기예요.",h:"'의인은 믿음으로 살리라'는 구약 선지서에 처음 나와요.",
+  q:"말씀과 그것이 나오는 책을 바르게 짝지으세요.",L:"말씀",R:"책",pairs:[["항상 기뻐하라 쉬지 말고 기도하라","데살로니가전서"],["능력 주시는 자 안에서 모든 것을 할 수 있다","빌립보서"],["몸을 거룩한 산 제물로 드리라","로마서"],["서로 사랑하라는 새 계명","요한복음"],["의인은 그의 믿음으로 살리라","하박국"],["마음과 뜻과 힘을 다하여 사랑하라","신명기"],["모든 성경은 하나님의 감동으로 된 것","디모데후서"]]},
+ {type:"match",ref:"말 4:5; 약 5:17; 히 11:31; 11:4; 시 3편, 51편, 90편 표제",ex:"엘리야는 말라기와 야고보서, 라합과 아벨은 히브리서, 압살롬은 시편 3편, 밧세바는 시편 51편, 모세는 시편 90편 표제에 다시 나와요.",h:"말라기는 엘리야를 보내겠다는 약속으로 끝나요.",
+  q:"인물과 그가 다시 언급된 곳을 바르게 짝지으세요.",L:"인물",R:"다시 언급된 곳",pairs:[["엘리야(보내리라)","말라기"],["엘리야(삼 년 육 개월)","야고보서"],["라합","히브리서 11장"],["압살롬","시편 3편 표제"],["밧세바","시편 51편 표제"],["모세(기도)","시편 90편 표제"]]}
+];
+/* 조각 맞추기: w = 정답 조각(순서대로), d = 미끼 조각 후보(판마다 2개), a = 띄어쓰기가 있는 정답 표기 */
+const OT4=[
+{type:"piece",q:"이사야가 큰 서판에 쓰고, 뒤에 낳은 아들의 이름으로 삼은 말은?",w:["마헬","살랄","하스","바스"],d:["살라","하바","마스","브엘"],h:"개역개정 각주는 이 이름의 뜻을 '노략이 속함'으로 풀어요.",ex:"이사야 8장에서 하나님은 이 말을 큰 서판에 쓰게 하시고, 이사야가 낳은 아들의 이름으로 삼게 하셨어요. 각주는 '노략이 속함'이라는 뜻으로 풀어요.",ref:"이사야 8:1, 3"},
+{type:"piece",q:"이사야가 유다 왕 아하스를 만나러 나갈 때 데리고 간 아들의 이름은?",w:["스알","야","숩"],d:["마헬","살랄","야숨","스엘"],h:"윗못 수도 끝, 세탁자의 밭 큰 길에서 왕을 만났어요.",ex:"이사야 7장에서 이사야는 하나님의 말씀대로 아들 스알야숩과 함께 나가 아하스 왕을 만났어요.",ref:"이사야 7:3"},
+{type:"piece",q:"벨사살 왕의 잔치 때 사람의 손가락이 나타나 왕궁 벽에 쓴 글은?",w:["메네","메네","데겔","우바르신"],a:"메네 메네 데겔 우바르신",d:["베레스","우바","므네","데길"],h:"같은 말이 두 번 되풀이되고, 모두 네 마디예요.",ex:"다니엘 5장에서 다니엘은 이 글을 풀어, 하나님이 왕의 나라를 세어 끝나게 하셨고, 왕을 저울에 달아 부족함이 드러났으며, 나라가 나뉘어 메대와 바사에게 넘어간다고 했어요.",ref:"다니엘 5:25-28"},
+{type:"piece",q:"유다 왕 여호야김 때 예루살렘을 에워싸고, 이스라엘 소년들을 뽑아 바벨론의 학문을 가르치게 한 왕은?",w:["느부","갓네","살"],d:["사라","단","네셀","갓사"],h:"다니엘에게 큰 신상 꿈의 풀이를 들은 왕이기도 해요.",ex:"다니엘 1장은 바벨론 왕 느부갓네살이 예루살렘을 에워싼 일로 시작해요. 그는 환관장에게 명해 이스라엘의 소년들을 데려다 갈대아의 학문과 언어를 가르치게 했어요.",ref:"다니엘 1:1-4"},
+{type:"piece",q:"바벨론 시위대장으로서 예루살렘에 와서 여호와의 성전과 왕궁을 불사른 사람은?",w:["느부","사라","단"],d:["갓네","살","라단","느보"],h:"이름 앞부분이 당시 바벨론 왕의 이름 앞부분과 같아요.",ex:"열왕기하 25장에서 바벨론 왕의 신하인 시위대장 느부사라단이 예루살렘에 와서 여호와의 성전과 왕궁, 예루살렘의 모든 집을 불살랐어요.",ref:"열왕기하 25:8-9"},
+{type:"piece",q:"즉위한 해에 옥에 갇혀 있던 유다 왕 여호야긴을 풀어 준 바벨론 왕은?",w:["에윌","므로","닥"],d:["브로","발라","에살","모닥"],h:"여호야긴이 사로잡혀 간 지 37년째 되던 해의 일이에요.",ex:"열왕기하 25장 끝에서 바벨론 왕 에윌므로닥은 즉위한 원년에 여호야긴을 옥에서 풀어 주고, 그의 자리를 다른 왕들보다 높여 주었어요.",ref:"열왕기하 25:27-28"},
+{type:"piece",q:"환관장이 다니엘에게 지어 준 바벨론식 이름은?",w:["벨","드","사살"],d:["벨사","살","사드","락"],h:"잔치를 벌이다 벽의 글씨를 본 벨사살 왕과 헷갈리기 쉬운 이름이에요.",ex:"다니엘 1장에서 환관장은 다니엘을 벨드사살, 하나냐를 사드락, 미사엘을 메삭, 아사랴를 아벳느고라 불렀어요.",ref:"다니엘 1:7"},
+{type:"piece",q:"다니엘의 친구 아사랴가 바벨론에서 받은 새 이름은?",w:["아벳","느","고"],d:["메삭","사드","락","아벨"],h:"풀무불에 던져졌던 세 사람 가운데 이름이 가장 긴 사람이에요.",ex:"다니엘 1:7에 따르면 하나냐는 사드락, 미사엘은 메삭, 아사랴는 아벳느고라는 이름을 받았어요.",ref:"다니엘 1:7"},
+{type:"piece",q:"바벨론 왕의 명령으로 이스라엘 소년들을 데려다 가르치게 한 환관장의 이름은?",w:["아스","부","나스"],d:["낫","벨드","아브","나사"],h:"다니엘과 친구들에게 새 이름을 지어 준 사람이에요.",ex:"다니엘 1장에서 왕은 환관장 아스부나스에게 명해, 흠이 없고 지혜로운 이스라엘 소년들을 데려와 갈대아 사람의 학문과 언어를 가르치게 했어요.",ref:"다니엘 1:3-4"},
+{type:"piece",q:"인도부터 구스까지 127 지방을 다스리고, 왕후 와스디를 폐한 뒤 에스더를 왕후로 삼은 왕은?",w:["아하","수에","로"],d:["아닥","사스","수아","다리"],h:"에스더서 첫 절에 나오는 왕이에요.",ex:"에스더 1장의 왕 아하수에로는 인도부터 구스까지 127 지방을 다스렸어요. 와스디가 왕의 명을 거역해 폐위되었고, 2장에서 에스더가 새 왕후가 되었어요.",ref:"에스더 1:1; 2:17"},
+{type:"piece",q:"느헤미야가 술 맡은 관원으로 섬기다가, 예루살렘 성을 다시 쌓도록 허락받은 바사 왕은?",w:["아닥","사스","다"],d:["아하","수에","다리","사사"],h:"그 왕 제20년 니산월에 있었던 일이에요.",ex:"느헤미야 2장에서 느헤미야는 왕에게 포도주를 올리다가 수심 있는 얼굴을 들켰고, 기도한 뒤 유다로 가서 성을 건축하게 해 달라고 청해 허락받았어요.",ref:"느헤미야 1:11; 2:1-8"},
+{type:"piece",q:"이스라엘 왕 베가 때 쳐들어와 여러 성읍을 점령하고 주민을 앗수르로 사로잡아 간 앗수르 왕은?",w:["디글","랏","빌레","셀"],a:"디글랏 빌레셀",d:["살만","에셀","빌라","디블"],h:"유다 왕 아하스가 은과 금을 보내 도움을 청한 앗수르 왕이기도 해요.",ex:"열왕기하 15장에서 앗수르 왕 디글랏 빌레셀은 이스라엘 왕 베가 때 와서 여러 성읍을 점령하고 그 주민을 앗수르로 사로잡아 갔어요.",ref:"열왕기하 15:29; 16:7"},
+{type:"piece",q:"산헤립이 자기 신의 신전에서 아들들에게 죽임을 당한 뒤, 대신 앗수르 왕이 된 아들은?",w:["에살","핫","돈"],d:["사레","셀","하돈","니스"],h:"아버지를 죽인 두 아들은 아드람멜렉과 사레셀이에요.",ex:"열왕기하 19장 끝에서 산헤립은 니스록의 신전에서 경배하다가 아들 아드람멜렉과 사레셀에게 죽임을 당했고, 그의 아들 에살핫돈이 대신 왕이 되었어요.",ref:"열왕기하 19:37"},
+{type:"piece",q:"히스기야가 병들었다 나았다는 소식을 듣고 글과 예물을 보낸 바벨론 왕을, 이사야서에 적힌 이름으로 맞추면?",w:["므로","닥","발라","단"],d:["브로","에윌","라단","모"],h:"같은 일을 기록한 열왕기하 20장에서는 첫 글자가 다르게 적혀 있어요.",ex:"이사야 39:1은 이 왕을 므로닥발라단으로, 같은 사건을 기록한 열왕기하 20:12는 브로닥발라단으로 적어요. 발라단의 아들이에요.",ref:"이사야 39:1; 열왕기하 20:12"},
+{type:"piece",q:"다리를 절었고, 다윗이 요나단을 생각해 늘 왕의 상에서 먹게 한 요나단의 아들은?",w:["므비","보","셋"],d:["이스","바알","보스","셀"],h:"사울의 종이었던 시바가 다윗에게 그를 알려 주었어요.",ex:"사무엘하 9장에서 다윗은 요나단 때문에 은총을 베풀 사람을 찾았고, 두 발을 저는 므비보셋을 불러 사울의 밭을 돌려주고 늘 왕의 상에서 먹게 했어요.",ref:"사무엘하 9:3-13"},
+{type:"piece",q:"사울이 죽은 뒤 아브넬이 마하나임으로 데리고 가서 이스라엘의 왕으로 세운 사울의 아들은?",w:["이스","보","셋"],d:["므비","벳","아비","에스"],h:"왕이 될 때 40세였고, 2년 동안 다스렸어요.",ex:"사무엘하 2장에서 사울의 군장 아브넬은 사울의 아들 이스보셋을 마하나임으로 데려가 이스라엘 왕으로 세웠어요. 그때 유다 족속은 다윗을 따랐어요.",ref:"사무엘하 2:8-10"},
+{type:"piece",q:"압살롬의 반역에 가담한, 길로 사람인 다윗의 모사는?",w:["아히","도","벨"],d:["후새","멜렉","아비","도엘"],h:"다윗은 그의 모략을 어리석게 해 달라고 기도했어요.",ex:"사무엘하 15장에서 압살롬은 다윗의 모사를 그의 성읍 길로에서 불러왔어요. 다윗은 아히도벨이 반역자들과 함께한다는 말을 듣고 그의 모략을 어리석게 해 달라고 기도했어요.",ref:"사무엘하 15:12, 31"},
+{type:"piece",q:"성경에 나이가 기록된 사람 가운데 가장 오래 산, 969세를 산 사람은?",w:["므두","셀","라"],d:["라멕","셀렉","므드","에녹"],h:"에녹의 아들이고, 라멕의 아버지예요.",ex:"창세기 5장에 따르면 므두셀라는 187세에 라멕을 낳고, 969세를 살고 죽었어요.",ref:"창세기 5:25-27"},
+{type:"piece",q:"바로가 요셉을 애굽의 총리로 세우며 새로 지어 준 이름은?",w:["사브","낫","바네","아"],d:["아스","보디","베라","가데"],h:"바로는 같은 때에 온의 제사장의 딸을 요셉의 아내로 주었어요.",ex:"창세기 41:45에서 바로는 요셉의 이름을 사브낫바네아라 하고, 온의 제사장의 딸 아스낫을 아내로 주었어요.",ref:"창세기 41:45"},
+{type:"piece",q:"요셉의 장인, 곧 요셉의 아내 아스낫의 아버지인 온의 제사장은?",w:["보디","베","라"],d:["발","아스","낫","베리"],h:"요셉을 샀던 시위대장 보디발과 이름 앞부분이 같아요.",ex:"창세기 41:45에 따르면 요셉의 아내 아스낫은 온의 제사장 보디베라의 딸이에요. 요셉을 샀던 시위대장 보디발과는 다른 사람이에요.",ref:"창세기 41:45; 39:1"},
+{type:"piece",q:"아브람의 조카 롯을 사로잡아 간 왕들 가운데, 엘람의 왕은?",w:["그돌","라","오멜"],d:["아므","라벨","디달","오맬"],h:"아브람은 집에서 길리고 훈련된 사람 318명을 데리고 쫓아갔어요.",ex:"창세기 14장에서 엘람 왕 그돌라오멜과 동맹한 왕들이 소돔을 쳐 롯을 사로잡아 갔고, 아브람이 쫓아가 롯과 재물을 되찾았어요.",ref:"창세기 14:1-16"},
+{type:"piece",q:"자식이 없던 아브람이 '내 상속자'라고 말한 다메섹 사람은?",w:["엘리","에","셀"],d:["에벤","살","엘르","에셀"],h:"하나님은 그가 아니라 아브람의 몸에서 날 자가 상속자가 되리라 하셨어요.",ex:"창세기 15장에서 아브람은 자식이 없어 다메섹 사람 엘리에셀이 상속자가 되겠다고 했지만, 하나님은 아브람의 몸에서 날 자가 상속자가 되리라 하셨어요.",ref:"창세기 15:2-4"},
+{type:"piece",q:"아버지의 바알 제단을 헐었다고 해서 기드온에게 붙여진 다른 이름은?",w:["여룹","바","알"],d:["바락","여로","알론","스룹"],h:"'바알이 그와 더불어 다툴 것이라'는 말에서 나온 이름이에요.",ex:"사사기 6장에서 기드온은 아버지 요아스의 바알 제단을 헐고 그 곁의 아세라 상을 찍었어요. 그 일로 그날 그를 여룹바알이라 불렀어요.",ref:"사사기 6:25-32"},
+{type:"piece",q:"이스라엘 왕 아하시야가 다락 난간에서 떨어져 병든 뒤, 병이 나을지 물으려고 사자를 보낸 에그론의 신은?",w:["바알","세","붑"],d:["불","브올","세벨","아세"],h:"엘리야가 '이스라엘에 하나님이 없어서 에그론의 신에게 묻느냐'고 꾸짖었어요.",ex:"열왕기하 1장에서 아하시야는 병들자 에그론의 신 바알세붑에게 물으러 사자를 보냈고, 엘리야가 그 사자들을 막아 하나님의 말씀을 전했어요. 신약의 '바알세불'과 끝 글자가 달라요.",ref:"열왕기하 1:2-3"},
+{type:"piece",q:"블레셋에서 돌아온 여호와의 궤가 아비나답의 집에 들어가 20년 동안 머문 성읍은?",w:["기럇","여아","림"],d:["아르","바","기랏","여림"],h:"산에 사는 아비나답의 아들 엘리아살이 궤를 지켰어요.",ex:"사무엘상 7장에서 기럇여아림 사람들이 여호와의 궤를 산에 사는 아비나답의 집에 들여놓았고, 궤는 그곳에 20년 동안 있었어요.",ref:"사무엘상 7:1-2"},
+{type:"piece",q:"사래를 피해 도망한 하갈이 여호와의 사자를 만난 뒤, 그 우물에 붙은 이름은?",w:["브엘","라해","로이"],d:["세바","엘로","라헬","로암"],h:"가데스와 베렛 사이에 있는 우물이에요.",ex:"창세기 16장에서 하갈은 자기를 살피시는 하나님을 만났고, 그 우물은 브엘라해로이라 불렸어요. 가데스와 베렛 사이에 있어요.",ref:"창세기 16:7-14"},
+{type:"piece",q:"민수기 32장에서 모세가 르우벤과 갓 자손을 꾸짖으며 떠올린, 조상들이 정탐꾼을 보냈던 곳은?",w:["가데","스","바네","아"],d:["가나","사브","낫","바란"],h:"정탐꾼들이 그 땅을 보고 와서 백성의 마음을 낙심하게 했던 일을 떠올린 장면이에요.",ex:"민수기 32장에서 모세는 르우벤과 갓 자손에게, 조상들도 가데스바네아에서 땅을 보러 보냈을 때 이스라엘 자손을 낙심하게 했다고 꾸짖었어요.",ref:"민수기 32:6-9"},
+{type:"piece",q:"사무엘의 아버지 엘가나가 살던, 에브라임 산지의 성읍 이름은?",w:["라마","다임","소빔"],d:["마하","나임","기럇","소밤"],h:"사무엘상 첫 절에 나오는 긴 지명이에요.",ex:"사무엘상 1:1은 엘가나를 에브라임 산지 라마다임소빔에 사는 사람으로 소개해요.",ref:"사무엘상 1:1"},
+{type:"piece",q:"솔로몬의 뒤를 이어 왕이 되었으나, 백성의 멍에를 더 무겁게 하겠다고 답해 나라가 갈라지게 된 왕은?",w:["르호","보","암"],d:["여로","아비","얌","르우"],h:"노인들의 조언 대신 함께 자란 젊은 신하들의 말을 따랐어요.",ex:"열왕기상 12장에서 솔로몬의 아들 르호보암은 젊은 신하들의 말을 따라 백성에게 더 무거운 멍에를 메우겠다고 했고, 열 지파는 다윗의 집을 떠났어요.",ref:"열왕기상 12:1-20"},
+{type:"piece",q:"갈라진 북쪽 이스라엘의 첫 왕이 되어, 금송아지 둘을 만들어 벧엘과 단에 둔 사람은?",w:["여로","보","암"],d:["르호","아비","얌","여룹"],h:"느밧의 아들이에요.",ex:"열왕기상 12장에서 느밧의 아들 여로보암은 이스라엘의 왕이 되었고, 백성이 예루살렘으로 올라가지 않게 하려고 금송아지 둘을 만들어 벧엘과 단에 두었어요.",ref:"열왕기상 12:20, 26-29"},
+{type:"piece",q:"열여덟 살에 왕이 되어 석 달 동안 다스리다 바벨론으로 끌려간 유다 왕은?",w:["여호","야","긴"],d:["김","사밧","야다","여로"],h:"37년 뒤 바벨론 왕이 그를 옥에서 풀어 주었어요.",ex:"열왕기하 24장에 따르면 여호야긴은 18세에 왕이 되어 석 달을 다스렸고, 바벨론 왕에게 나아가 항복한 뒤 바벨론으로 끌려갔어요. 아버지의 이름과 끝 글자 하나만 달라요.",ref:"열왕기하 24:8-15"},
+{type:"piece",q:"애굽 왕 바로느고가 요시야의 아들 엘리아김을 왕으로 세우며 고쳐 준 이름은?",w:["여호","야","김"],d:["긴","시드","엘리","아김"],h:"스물다섯 살에 왕이 되어 11년 동안 다스렸어요.",ex:"열왕기하 23:34에서 바로느고는 엘리아김을 왕으로 세우고 이름을 여호야김으로 고쳤어요. 그는 25세에 왕이 되어 11년을 다스렸어요.",ref:"열왕기하 23:34-36"},
+{type:"piece",q:"포로에서 돌아와 제사장 예수아와 함께 제단을 만들고 성전 재건을 이끈 스알디엘의 아들은?",w:["스룹","바","벨"],d:["여룹","세스","바살","벨드"],h:"학개서에서는 그를 유다 총독이라 불러요.",ex:"에스라 3장에서 스알디엘의 아들 스룹바벨은 요사닥의 아들 예수아와 함께 하나님의 제단을 만들었고, 이어 여호와의 성전 기초를 놓았어요.",ref:"에스라 3:2, 8-10"},
+{type:"piece",q:"호세아가 고멜에게서 얻은 첫 아들에게 하나님이 지어 주신 이름은?",w:["이스","르","엘"],d:["로암","미","라엘","이스라"],h:"예후의 집에 피를 갚으시겠다는 말씀과 함께 지어진 이름이에요.",ex:"호세아 1장에서 고멜이 낳은 첫 아들의 이름은 이스르엘이고, 이어 딸과 아들이 하나씩 더 태어났어요.",ref:"호세아 1:3-4"},
+{type:"piece",q:"호세아의 아내 고멜이 낳은 딸에게 하나님이 지어 주신 이름은?",w:["로","루하","마"],d:["암","미","이스","루마"],h:"하나님이 다시는 이스라엘 족속을 긍휼히 여기지 않겠다는 말씀과 함께 지어진 이름이에요.",ex:"호세아 1:6에서 하나님은 딸의 이름을 로루하마라 하라고 하시며, 다시는 이스라엘 족속을 긍휼히 여겨 용서하지 않겠다고 하셨어요.",ref:"호세아 1:6"},
+{type:"piece",q:"호세아의 아내 고멜이 딸을 젖 뗀 뒤 낳은 아들에게 하나님이 지어 주신 이름은?",w:["로","암","미"],d:["루하","마","이스","암마"],h:"'너희는 내 백성이 아니라'는 말씀과 함께 지어진 이름이에요.",ex:"호세아 1:9에서 하나님은 그 아들의 이름을 로암미라 하라고 하시며, 이스라엘이 하나님의 백성이 아니라고 하셨어요.",ref:"호세아 1:8-9"},
+{type:"piece",q:"압살롬의 난 때 마하나임에 머문 다윗을 공궤한 80세의 길르앗 사람은?",w:["바르","실","래"],d:["김함","길르","래아","바실"],h:"다윗이 예루살렘으로 함께 가자고 했지만, 늙었다며 김함을 대신 보냈어요.",ex:"사무엘하 19장에서 바르실래는 다윗과 함께 요단까지 왔지만, 나이가 80세라며 예루살렘에 가지 않고 김함을 대신 보냈어요. 그는 다윗이 마하나임에 있을 때 왕을 공궤한 큰 부자였어요.",ref:"사무엘하 19:31-39"},
+{type:"piece",q:"구덩이에 갇힌 예레미야를 헝겊과 낡은 옷, 줄을 써서 끌어낸 구스 사람 내시는?",w:["에벳","멜","렉"],d:["아히","오벳","엘리","멜기"],h:"왕궁에 있던 내시로, 왕에게 예레미야를 살려 달라고 아뢰었어요.",ex:"예레미야 38장에서 구스인 내시 에벳멜렉은 왕의 허락을 받아, 헝겊과 낡은 옷을 겨드랑이에 대게 한 뒤 줄로 예레미야를 구덩이에서 끌어냈어요.",ref:"예레미야 38:7-13"}
+];
+const NT4=[
+{type:"piece",q:"바리새인들은 예수께서 귀신을 쫓아내시는 것을 두고, 귀신의 왕 누구를 힘입은 것이라고 말했나요?",w:["바알","세","불"],d:["붑","브올","세벨","바라"],h:"예수께서는 스스로 분쟁하는 나라마다 황폐하여진다고 답하셨어요.",ex:"마태복음 12장에서 바리새인들은 예수께서 귀신의 왕 바알세불을 힘입어 귀신을 쫓아낸다고 했어요. 열왕기하의 '바알세붑'과 끝 글자가 달라요.",ref:"마태복음 12:24-26"},
+{type:"piece",q:"예수께서 회당장 야이로의 죽은 딸의 손을 잡고 하신 말씀은?",w:["달리","다","굼"],d:["에바","굼다","리다","다리"],h:"번역하면 '소녀야 일어나라'는 뜻이에요.",ex:"마가복음 5장에서 예수께서 열두 살 된 야이로의 딸의 손을 잡고 달리다굼, 곧 소녀야 일어나라 하시자 아이가 곧 일어나 걸었어요.",ref:"마가복음 5:22-42"},
+{type:"piece",q:"제구시에 십자가 위에서 예수께서 크게 소리 지르신 말씀은?",w:["엘리","엘리","라마","사박다니"],a:"엘리 엘리 라마 사박다니",d:["엘로","라마나","아바","사바"],h:"번역하면 '나의 하나님, 나의 하나님, 어찌하여 나를 버리셨나이까'예요.",ex:"마태복음 27장과 마가복음 15장에서 예수께서는 제구시에 엘리 엘리 라마 사박다니라고 크게 외치셨어요. 개역개정은 두 복음서 모두 같은 표기로 적어요.",ref:"마태복음 27:46; 마가복음 15:34"},
+{type:"piece",q:"마지막 만찬 뒤 예수께서 제자들과 함께 가서 기도하신 곳은?",w:["겟세","마","네"],d:["골고","다","베다","마나"],h:"베드로와 세베대의 두 아들을 데리고 조금 더 나아가 기도하셨어요.",ex:"마태복음 26장에서 예수께서는 겟세마네라는 곳에 이르러 제자들에게 앉아 있으라 하시고, 세 제자를 데리고 가서 기도하셨어요.",ref:"마태복음 26:36-46"},
+{type:"piece",q:"빌라도에게 예수의 시체를 달라고 하여 자기 새 무덤에 넣은 부자 요셉의 고향은?",w:["아리","마","대"],d:["막달","라","겟세","리마"],h:"마태복음은 그도 예수의 제자였다고 소개해요.",ex:"마태복음 27장에서 아리마대의 부자 요셉은 빌라도에게 예수의 시체를 청해 깨끗한 세마포로 싸서, 바위 속에 판 자기 새 무덤에 넣었어요.",ref:"마태복음 27:57-60"},
+{type:"piece",q:"예루살렘 양문 곁에 있던, 행각 다섯이 있는 못의 이름은?",w:["베데","스","다"],d:["실로","암","베다","데스"],h:"38년 된 병자가 그곳에서 고침을 받았어요.",ex:"요한복음 5장에서 예수께서는 베데스다 못가에 누워 있던 38년 된 병자에게 일어나 자리를 들고 걸어가라고 하셨어요.",ref:"요한복음 5:2-9"},
+{type:"piece",q:"예수께서 나사렛을 떠나 스불론과 납달리 지경 해변에 가서 사신 곳은?",w:["가버","나","움"],d:["고라","신","벳새","나인"],h:"베드로의 장모가 열병에서 나은 곳이기도 해요.",ex:"마태복음 4장에 따르면 예수께서는 나사렛을 떠나 스불론과 납달리 지경 해변에 있는 가버나움에 가서 사셨어요.",ref:"마태복음 4:13; 마가복음 1:21-31"},
+{type:"piece",q:"예수께서 '사람들이 인자를 누구라 하느냐'고 물으시고, 베드로가 주를 그리스도라고 고백한 지방은?",w:["빌립","보","가이","사랴"],a:"빌립보 가이사랴",d:["데가","볼리","갈릴","사라"],h:"개역개정에서는 두 낱말로 띄어 쓰는 지방 이름이에요.",ex:"마태복음 16장에서 예수께서 빌립보 가이사랴 지방에 이르러 제자들에게 물으셨고, 베드로는 예수께서 그리스도시며 살아 계신 하나님의 아들이라고 고백했어요.",ref:"마태복음 16:13-16"},
+{type:"piece",q:"무덤 사이에 살던 귀신 들린 사람이 고침을 받은 뒤, 예수께서 행하신 일을 전파한 지방은?",w:["데가","볼","리"],d:["빌립","보","가다","라리"],h:"그 사람은 예수와 함께 있기를 원했지만, 예수께서는 집으로 돌아가 알리라고 하셨어요.",ex:"마가복음 5장에서 군대라 하는 귀신에게서 놓인 사람은 예수께서 자기에게 행하신 큰 일을 데가볼리에 전파했고, 사람들이 다 놀랐어요.",ref:"마가복음 5:1-20"},
+{type:"piece",q:"마태복음 10장의 열두 사도 명단에서 빌립과 함께 짝지어 나오는 사도는?",w:["바돌","로","매"],d:["디매","다대","오","도마"],h:"같은 명단에서 그다음 짝은 도마와 세리 마태예요.",ex:"마태복음 10:2-4는 열두 사도를 둘씩 묶어 적는데, 빌립과 바돌로매가 한 짝이에요.",ref:"마태복음 10:2-4"},
+{type:"piece",q:"밤에 예수를 찾아와 거듭나야 한다는 말씀을 들은 바리새인, 유대인의 지도자는?",w:["니고","데","모"],d:["데오","빌로","고넬","니골"],h:"예수께서 그에게 물과 성령으로 나야 한다고 말씀하셨어요.",ex:"요한복음 3장에서 바리새인이요 유대인의 지도자인 니고데모가 밤에 예수께 왔고, 예수께서는 사람이 거듭나지 않으면 하나님의 나라를 볼 수 없다고 하셨어요.",ref:"요한복음 3:1-5"},
+{type:"piece",q:"예수께서 여리고에서 나가실 때, 길가에서 '다윗의 자손 예수여' 하고 외친 맹인 거지는?",w:["바디","매","오"],d:["디매","바돌","로","삭개"],h:"부르심을 받자 겉옷을 내버리고 뛰어 일어나 예수께 나아왔어요.",ex:"마가복음 10장에서 디매오의 아들인 맹인 거지 바디매오는 예수를 부르며 외쳤고, 보기를 원한다고 하여 곧 보게 되었어요.",ref:"마가복음 10:46-52"},
+{type:"piece",q:"아내와 함께 땅을 판 값의 일부를 감추고 나머지만 사도들 앞에 내놓았다가 죽은 사람은?",w:["아나","니","아"],d:["삽비","라","바나","니가"],h:"베드로가 사람에게 거짓말한 것이 아니라 하나님께 한 것이라고 꾸짖었어요.",ex:"사도행전 5장에서 아나니아는 아내 삽비라와 함께 땅값 얼마를 감추고 나머지만 가져왔다가, 베드로의 꾸짖음을 듣고 엎드러져 죽었어요.",ref:"사도행전 5:1-5"},
+{type:"piece",q:"빌립보에서 바울의 말을 듣고 세례를 받은, 자색 옷감 장사 루디아의 출신 도시는?",w:["두아","디","라"],d:["루디","아","라오","디게"],h:"요한계시록의 일곱 교회 가운데 하나가 이 도시에 있어요.",ex:"사도행전 16장에서 두아디라 시의 자색 옷감 장사 루디아는 바울의 말을 듣고 마음이 열려, 온 집과 함께 세례를 받았어요.",ref:"사도행전 16:14-15"},
+{type:"piece",q:"바울이 세 안식일 동안 회당에서 강론했고, 소동 중에 야손의 집이 습격당한 도시는?",w:["데살","로","니가"],d:["베뢰","아","빌립","니아"],h:"바울은 뒤에 이 도시의 교회에 편지 두 통을 보냈어요.",ex:"사도행전 17장에서 바울은 데살로니가 회당에서 세 안식일 동안 강론했고, 시기한 유대인들이 소동을 일으켜 야손의 집에 들이닥쳤어요.",ref:"사도행전 17:1-9"},
+{type:"piece",q:"아덴에서 바울의 말을 듣고 믿게 된 아레오바고 관리는?",w:["디오","누","시오"],d:["데오","드레","아레","니오"],h:"다마리라 하는 여자도 함께 믿었어요.",ex:"사도행전 17장 끝에서 아레오바고 관리 디오누시오와 다마리라는 여자, 그 밖의 몇 사람이 바울을 따라 믿었어요.",ref:"사도행전 17:34"},
+{type:"piece",q:"아덴 사람들이 바울을 데려가, 그가 '알지 못하는 신에게'라고 새긴 제단 이야기로 설교한 곳은?",w:["아레","오","바고"],d:["디오","바울","아고","오바"],h:"그곳의 관리 한 사람도 바울의 말을 믿었어요.",ex:"사도행전 17장에서 사람들은 바울을 아레오바고로 데려갔고, 바울은 '알지 못하는 신에게'라고 새긴 제단을 들어 천지의 주재이신 하나님을 전했어요.",ref:"사도행전 17:19-31"},
+{type:"piece",q:"고린도에서 바울과 함께 지내며 천막 만드는 일을 한 아굴라의 아내는?",w:["브리","스","길라"],d:["아굴","라오","길르","리스"],h:"이 부부는 뒤에 아볼로에게 하나님의 도를 더 정확하게 풀어 주었어요.",ex:"사도행전 18장에서 바울은 아굴라와 그 아내 브리스길라를 만나, 생업이 같아 함께 살며 천막 만드는 일을 했어요.",ref:"사도행전 18:2-3, 26"},
+{type:"piece",q:"언변이 좋고 성경에 능통하여 에베소에 온 아볼로의 출생지는?",w:["알렉","산드","리아"],d:["안디","옥","드로","리비"],h:"그는 처음에 요한의 세례만 알고 있었어요.",ex:"사도행전 18장에 따르면 알렉산드리아에서 난 아볼로는 언변이 좋고 성경에 능통한 사람으로 에베소에 왔어요.",ref:"사도행전 18:24-25"},
+{type:"piece",q:"바울의 변론을 듣고, 바울이 적은 말로 자기를 그리스도인이 되게 하려 한다고 말한 왕은?",w:["아그","립","바"],d:["벨릭","스","가이","립보"],h:"총독 베스도와 버니게도 그 자리에 있었어요.",ex:"사도행전 26장에서 바울은 아그립바 왕 앞에서 자신이 주를 만난 일을 전했고, 왕은 바울이 적은 말로 자기를 권해 그리스도인이 되게 하려 한다고 말했어요.",ref:"사도행전 26:1-28"},
+{type:"piece",q:"바울이 갇힌 중에 낳은 아들이라 부르며, 그를 위해 빌레몬에게 편지를 쓴 사람은?",w:["오네","시","모"],d:["보로","빌레","몬","시보"],h:"전에는 빌레몬에게 무익했으나 이제는 유익한 사람이 되었다고 했어요.",ex:"빌레몬서에서 바울은 갇힌 중에 낳은 아들 오네시모를 위해 빌레몬에게 간구하며, 그를 종 이상의 사랑받는 형제로 받아 달라고 했어요.",ref:"빌레몬서 1:10-16"},
+{type:"piece",q:"바울이 갇혔을 때 부끄러워하지 않고 로마에서 부지런히 찾아와 만나 준 사람은?",w:["오네","시","보로"],d:["모","빌레","부겔","로마"],h:"디모데후서에서 바울은 그의 집에 긍휼을 베풀어 달라고 기도했어요.",ex:"디모데후서 1장에서 바울은 아시아에 있는 사람들이 다 자기를 버렸지만, 오네시보로는 자주 격려하고 로마에서 부지런히 찾아왔다고 했어요.",ref:"디모데후서 1:15-17"},
+{type:"piece",q:"빌립보 교회가 바울에게 보낸 일꾼으로, 병들어 거의 죽게 되었다가 나은 사람은?",w:["에바","브로","디도"],d:["브라","디모","데","오네"],h:"바울은 그를 빌립보 교회로 다시 돌려보냈어요.",ex:"빌립보서 2장에서 바울은 에바브로디도를 빌립보 교회에 돌려보내려 했어요. 그는 병들어 죽게 되었으나 하나님이 긍휼히 여기셔서 나았어요.",ref:"빌립보서 2:25-30"},
+{type:"piece",q:"요한삼서에서 으뜸 되기를 좋아하여 요한 일행을 맞아들이지 않는다고 지적받은 사람은?",w:["디오","드레","베"],d:["데메","드리","오","가이"],h:"요한삼서는 가이오에게 보낸 편지예요.",ex:"요한삼서에서 장로 요한은 으뜸 되기를 좋아하는 디오드레베가 자기들을 맞아들이지 않는다고 지적하고, 데메드리오는 뭇사람에게 선한 증거를 받았다고 칭찬했어요.",ref:"요한삼서 1:9-12"},
+{type:"piece",q:"요한계시록에서 작은 능력을 가지고도 말씀을 지키고 주의 이름을 배반하지 않았다고 칭찬받은 교회는?",w:["빌라","델","비아"],d:["라오","디게","사데","델리"],h:"일곱 교회 가운데 책망 없이 칭찬만 받은 교회 중 하나예요.",ex:"요한계시록 3장에서 빌라델비아 교회는 작은 능력으로도 말씀을 지키고 주의 이름을 배반하지 않았다고 칭찬받았어요.",ref:"요한계시록 3:7-13"},
+{type:"piece",q:"요한계시록에서 차지도 뜨겁지도 않고 미지근하다고 책망받은 교회는?",w:["라오","디게","아"],d:["빌라","델","두아","디라"],h:"스스로 부자라 하지만 실은 가련하고 가난하다는 말을 들었어요.",ex:"요한계시록 3장에서 라오디게아 교회는 차지도 뜨겁지도 않은 미지근한 모습 때문에 책망을 받았어요.",ref:"요한계시록 3:14-22"},
+{type:"piece",q:"요한계시록 16장에서 더러운 세 영이 온 천하 왕들을 전쟁하려고 모은, 히브리어로 불리는 곳은?",w:["아마","겟","돈"],d:["므깃","겟세","도","마겟"],h:"여섯째 대접이 쏟아진 뒤에 나오는 장면이에요.",ex:"요한계시록 16장에서 개구리 같은 더러운 세 영이 온 천하 왕들을 모아, 히브리어로 아마겟돈이라 하는 곳으로 모았어요.",ref:"요한계시록 16:12-16"},
+{type:"piece",q:"베드로전서 첫머리에서 본도, 갈라디아, 아시아, 비두니아와 함께 나그네들이 흩어져 사는 곳으로 나오는 지방은?",w:["갑바","도기","아"],d:["밤빌","리아","메소","도가"],h:"오순절에 모인 사람들의 출신지 목록에도 나와요.",ex:"베드로전서 1:1은 본도, 갈라디아, 갑바도기아, 아시아, 비두니아에 흩어진 나그네들에게 보낸 편지로 시작해요. 사도행전 2:9의 오순절 장면에도 이곳이 나와요.",ref:"베드로전서 1:1; 사도행전 2:9"},
+{type:"piece",q:"스데반의 설교에서, 아브라함이 하란에 있기 전에 영광의 하나님이 그에게 나타나신 곳은?",w:["메소","보다","미아"],d:["갑바","도기","아람","보디"],h:"오순절에 모인 사람들의 출신지 목록에서 엘람인 다음에 나와요.",ex:"사도행전 7장에서 스데반은, 아브라함이 하란에 있기 전 메소보다미아에 있을 때 하나님이 나타나 고향과 친척을 떠나라 하셨다고 말했어요.",ref:"사도행전 7:2-4"},
+{type:"piece",q:"포도원 주인이 품꾼들과 하루 품삯으로 약속한 돈의 단위는?",w:["데나","리","온"],d:["드라","크마","므나","리온"],h:"개역개정 각주는 이것을 은전의 명칭이라고 풀어요.",ex:"마태복음 20장에서 포도원 주인은 품꾼들과 하루 한 데나리온씩 약속했고, 늦게 온 사람들에게도 똑같이 한 데나리온씩 주었어요.",ref:"마태복음 20:1-16"},
+{type:"piece",q:"누가복음 15장의 비유에서, 한 여자가 열 개 가운데 하나를 잃고 등불을 켜고 집을 쓸며 찾은 은전은?",w:["드라","크","마"],d:["데나","리온","므나","크라"],h:"잃은 양 비유 바로 다음에 나오는 비유예요.",ex:"누가복음 15장에서 열 드라크마 가운데 하나를 잃은 여자는 등불을 켜고 집을 쓸어 찾았고, 찾은 뒤 벗과 이웃을 불러 함께 기뻐했어요.",ref:"누가복음 15:8-10"},
+{type:"piece",q:"요셉과 마리아가 호적하러 베들레헴으로 가게 된, 온 천하에 호적하라는 영을 내린 로마 황제는?",w:["가이","사","아구","스도"],a:"가이사 아구스도",d:["디베","료","사랴","스데"],h:"그때 수리아 총독은 구레뇨였어요.",ex:"누가복음 2장에서 가이사 아구스도가 온 천하에 호적하라는 영을 내렸고, 요셉은 다윗의 동네 베들레헴으로 올라가 약혼한 마리아와 함께 호적했어요.",ref:"누가복음 2:1-5"}
+];
+const BOTH4=[
+{type:"piece",q:"이사야가 처녀가 아들을 낳아 이렇게 부를 것이라 예언했고, 마태복음이 예수의 탄생에서 인용한 이름은?",w:["임마","누","엘"],d:["스알","이스","엘리","마누"],h:"'하나님이 우리와 함께 계시다'는 뜻이에요.",ex:"이사야 7:14의 예언에 나오는 임마누엘을 마태복음 1:23이 인용하며, 하나님이 우리와 함께 계시다는 뜻이라고 풀어요.",ref:"이사야 7:14; 마태복음 1:23"},
+{type:"piece",q:"다니엘에게 환상의 뜻을 깨닫게 했고, 사가랴에게 세례 요한의 탄생을 알린 천사는?",w:["가브","리","엘"],d:["미가","엘리","브리","가말"],h:"그는 자신을 하나님 앞에 서 있는 자라고 소개했어요.",ex:"다니엘 8:16에서 가브리엘은 다니엘에게 환상을 깨닫게 하라는 명을 받았고, 누가복음 1장에서는 사가랴와 마리아에게 나타나 아들의 탄생을 알렸어요.",ref:"다니엘 8:16; 누가복음 1:19, 26"},
+{type:"piece",q:"전쟁에서 돌아온 아브람을 떡과 포도주로 맞아 축복한 살렘 왕은?",w:["멜기","세","덱"],d:["아도","니","세렉","멜렉"],h:"히브리서 7장은 이 이름을 '의의 왕'이라고 풀어요.",ex:"창세기 14장에서 살렘 왕 멜기세덱은 떡과 포도주를 가지고 나와 아브람을 축복했고, 아브람은 그에게 십분의 일을 주었어요. 히브리서 7장은 그 이름을 의의 왕, 살렘 왕을 평강의 왕이라 풀어요.",ref:"창세기 14:18-20; 히브리서 7:1-2"}
+];
+
+/* 주제 묶음 (내부 데이터 · 화면에 표시하지 않음)
+   실질적으로 같은 내용을 묻는 문제끼리 묶어, 한 판에 묶음마다 한 문제만 나오게 함.
+   키 = 배열이름.순번 */
+const GROUPS={
+ "므두셀라나이":["OT.1","OT2.19"],
+ "아담셋":["OT.25","OT2.19","OT2.23","OT.63"],
+ "에녹":["OT.26","OT2.19","OT2.23","OT.63"],
+ "하란75":["OT.28","OT2.19","OT.67"],
+ "요셉30세":["OT.31","OT2.19","OT2.14"],
+ "기드온300":["OT.11","OT2.6"],
+ "기드온요아스":["OT2.6","OT2.22","OT2.23"],
+ "삼손":["OT.12","OT3.41","OT2.22","OT2.23"],
+ "오벳":["OT.13","OT2.7","OT2.20","OT2.23"],
+ "나오미룻":["OT.49","OT2.20","OT2.32","OT2.7","OT2.21"],
+ "다윗돌":["OT.14","OT2.12","OT2.13","OT3.38","OT3.67"],
+ "나단":["OT.15","OT.51","OT2.13","OT2.26","OT3.38","OT3.60"],
+ "여로보암":["OT.16","OT2.13","OT2.25","OT3.42"],
+ "나아만":["OT.18","OT.60","OT2.27","OT3.39","OT2.36"],
+ "히스기야":["OT.19","OT2.25"],
+ "다니엘이름":["OT.21","OT.56","OT2.28"],
+ "성벽":["OT.22","OT2.28"],
+ "욥친구":["OT.23","OT2.28"],
+ "모르드개":["OT.24","OT2.28"],
+ "롯의아내":["OT.29","OT.67"],
+ "야곱씨름":["OT.30","OT.46","OT2.15"],
+ "미리암":["OT.32","OT2.3","OT2.26","OT2.27","OT2.32","OT2.17"],
+ "마라":["OT.33","OT2.34","OT2.17","OT3.43"],
+ "라합여리고":["OT.34","OT2.27","OT3.18","OT3.36","OT3.40","OT3.69"],
+ "기브온":["OT.35","OT3.40"],
+ "엘리아들":["OT.36","OT2.8","OT2.12","OT2.18","OT2.27","OT2.32"],
+ "한나":["OT2.8","OT2.21","OT2.23","OT2.12","OT2.28","OT2.32"],
+ "사울":["OT.37","OT2.12","OT2.23","OT2.25"],
+ "성전7년":["OT.38","OT2.13","OT3.42"],
+ "호렙":["OT.39","OT2.11"],
+ "이사야6":["OT.40","OT2.25","OT2.26","OT3.61","OT2.28"],
+ "다리오":["OT.41","OT2.25"],
+ "베냐민":["OT.42","OT2.35","OT2.15"],
+ "선악나무":["OT.43","OT2.16"],
+ "뱀":["OT.44","OT2.16"],
+ "팥죽":["OT.4","OT.45","OT2.15"],
+ "일곱암소":["OT.47","OT2.14"],
+ "만나":["OT.48","OT2.17","OT3.43"],
+ "사무엘대답":["OT.50","OT2.12","OT2.26"],
+ "듣는마음":["OT.52","OT2.5","OT2.13","OT2.25","OT3.42"],
+ "로뎀":["OT.53","OT2.11","OT2.26"],
+ "데겔":["OT.54","OT2.26","OT2.25"],
+ "요나":["OT.55","OT2.26","OT2.28"],
+ "야곱아내":["OT.57","OT2.32"],
+ "엘리사일":["OT.60","OT3.39","OT2.26","BOTH.0"],
+ "야곱아들":["OT.61","OT.66","OT2.1","OT2.24"],
+ "출애굽순서":["OT.64","OT2.17","OT3.43","OT2.29"],
+ "사사":["OT.65","OT2.2","OT2.22","OT2.18"],
+ "드보라":["OT2.21","OT2.22","OT2.3","OT2.27"],
+ "아브라함":["OT.67","OT.2","OT.3"],
+ "십계명":["OT2.0","OT2.9"],
+ "재앙":["OT.59","OT2.10"],
+ "사브낫바네아":["OT2.4","OT2.33","OT2.14","OT2.21","OT2.32"],
+ "므낫세":["OT.7","OT2.14"],
+ "레위기23":["OT3.14","OT3.35","OT3.51","OT3.52","OT3.70"],
+ "쉐마":["OT3.15","OT3.40","OT3.70","OT3.69","BOTH3.0"],
+ "모세죽음":["OT3.0","OT3.17","OT3.40","OT3.57","OT3.56","OT3.68","OT3.69"],
+ "여호수아110":["OT3.1","OT3.11","OT3.57","OT3.40"],
+ "다윗기름":["OT3.2","OT3.19","OT3.37","OT3.38","OT3.67","OT3.69"],
+ "요시야":["OT3.3","OT3.22","OT3.53","OT3.55","OT3.57","OT3.42","OT3.54","OT3.59","OT3.62","OT3.70"],
+ "솔로몬":["OT3.4","OT3.53","OT3.57","OT3.42"],
+ "들릴라":["OT3.5","OT3.41","OT3.54","OT3.56","OT3.57","OT3.69"],
+ "아간":["OT3.6","OT3.40","OT3.55","OT3.56","OT3.59","OT3.66","OT3.69"],
+ "출애굽17":["OT3.7","OT3.43","OT3.68","OT3.56"],
+ "발락":["OT3.8","OT3.53","OT3.59","OT3.66"],
+ "욥":["OT3.9","OT3.25","OT3.26","OT3.56","OT3.57","OT3.64","OT3.65"],
+ "에스더4":["OT3.12","OT3.24","OT3.70"],
+ "요나단":["OT3.20","OT3.38","OT3.67","OT3.69"],
+ "나봇":["OT3.21","OT3.42","OT3.53","OT3.54","OT3.55","OT3.56","OT3.70"],
+ "느헤미야8":["OT3.23","OT3.56","OT3.62","OT3.70"],
+ "시편23":["OT3.27","OT3.46"],
+ "시편1":["OT3.28","OT3.45","OT3.58"],
+ "시편표제":["OT3.45","OT3.60","BOTH3.1","OT3.67"],
+ "개미":["OT3.58","OT3.70"],
+ "전도서3":["OT3.30","OT3.47"],
+ "이사야9":["OT3.31","OT3.48"],
+ "다니엘3":["OT3.32","OT3.53","OT3.56"],
+ "호세아1":["OT3.33","OT3.50","OT3.61","OT3.59","OT3.66"],
+ "예레미야1":["OT3.49","OT3.61","OT3.66"],
+ "토기장이":["OT3.61","OT3.58","OT3.70"],
+ "곰":["OT3.39","OT3.57"],
+ "스바여왕":["OT3.42","OT3.54"],
+ "모세가족":["OT3.43","OT3.63","OT3.54","OT3.68","OT3.66"],
+ "노아홍수":["OT3.44","OT3.56","OT3.57"],
+ "에녹성":["OT3.44","OT3.63"],
+ "밧세바":["OT3.38","OT3.55","OT3.66","OT3.67","OT3.69","BOTH3.1"],
+ "웃사":["OT3.38","OT3.55"],
+ "아모스":["OT3.61","OT3.62","OT3.70"],
+ "고레스":["OT3.53","OT3.59","OT3.70"],
+ "로데·행12":["OT3.53","OT3.54","NT3.8","NT3.20","NT3.23","NT3.24","NT3.28","NT3.30"],
+ "안나":["OT3.54","OT3.59","OT3.62","NT3.24"],
+ "로이스":["OT3.54","OT3.59","NT3.28"],
+ "에베소19":["OT3.55","OT3.59","OT3.62","NT3.9","NT3.23","NT3.24","NT3.28","NT3.30"],
+ "바디매오":["OT3.59","OT3.62","NT3.11","NT3.21","NT3.23","NT3.28","NT3.30"],
+ "첫제자":["OT3.62","NT3.14"],
+
+ "예물":["NT.0","NT2.16"],
+ "족보14":["NT.1","NT2.16"],
+ "사가랴":["NT.2","NT.59","NT2.25","NT2.48","NT2.15"],
+ "열두살":["NT.3","NT.59"],
+ "가나":["NT.4","NT2.14","NT2.24","NT2.27","NT2.32","NT2.40"],
+ "니고데모":["NT.5","NT2.14","NT2.27","NT2.28","NT2.29","NT2.32"],
+ "오천명":["NT.6","NT.63","NT2.31"],
+ "사천명":["NT.7","NT.63","NT2.31"],
+ "변화산":["NT.8","NT.63","NT2.31"],
+ "나사로":["NT.9","NT2.5","NT2.38","NT2.25","NT2.14","NT2.40","NT2.32"],
+ "살린사람":["NT.56","BOTH.0"],
+ "구레네":["NT.11","NT.58","NT2.21","NT2.23","NT2.25","NT2.31"],
+ "153":["NT.12","NT2.14","NT2.32"],
+ "맛디아":["NT.13","NT2.17","NT2.26","NT2.30"],
+ "오순절":["NT.14","NT.33","NT2.17","NT2.30"],
+ "빌립내시":["NT.15","NT2.17","NT2.26","NT2.30"],
+ "아나니아":["NT.16","NT.60","NT2.26","NT2.24","NT2.30"],
+ "바나바파송":["NT.17","NT.60","NT2.7","NT2.30"],
+ "바나바뜻":["NT2.7","NT2.22","NT2.42"],
+ "루디아":["NT.18","NT2.6","NT2.18","NT2.23","NT2.24","NT2.26","NT2.28","NT2.30"],
+ "실라감옥":["NT.19","NT.60","NT2.6","NT2.18"],
+ "브리스길라":["NT.20","NT2.18","NT2.23","NT2.25","NT2.28","NT2.30"],
+ "유두고":["NT.21","NT.55","NT.60","NT2.18","NT2.24","NT2.26","NT2.30","BOTH.0"],
+ "멜리데":["NT.22","NT.60","NT2.18","NT2.24","NT2.47","NT2.30"],
+ "성령의열매":["NT.23","NT2.12","NT2.29"],
+ "일곱교회":["NT.24","NT.54","NT.62","NT2.19","NT2.35","NT2.29"],
+ "헤롯두살":["NT.25","NT2.16","NT2.45","NT2.40"],
+ "세례요한":["NT.26","NT2.16","NT2.31"],
+ "금식":["NT.27","NT.63","NT2.16","NT2.40","NT2.31"],
+ "주기도문":["NT.28","NT.63","NT2.31"],
+ "삭개오":["NT.29","NT2.15","NT2.27","NT2.28","NT2.29"],
+ "사마리아인":["NT.30","NT2.4","NT2.15","NT2.27"],
+ "탕자":["NT.31","NT.45","NT2.15","NT2.27","NT2.38"],
+ "사마리아여인":["NT.32","NT.51","NT2.14","NT2.24","NT2.27","NT2.32"],
+ "아덴":["NT.34","NT.50","NT2.18","NT2.24","NT2.46","NT2.30"],
+ "바울출신":["NT.35","NT2.18","NT2.23","NT2.30"],
+ "가말리엘":["NT.35","NT2.17","NT2.26","NT2.28","NT2.30"],
+ "밧모":["NT.36","NT2.19","NT2.24"],
+ "베드로고백":["NT.37","NT.41","NT2.24","NT2.38","NT2.39","NT2.40","NT.63","NT2.31"],
+ "제구시":["NT.38","NT.42","NT2.21"],
+ "야이로":["NT.39","NT2.15","NT2.28","NT2.41","NT.56"],
+ "임마누엘":["NT.40","NT2.16","NT2.22"],
+ "보아너게":["NT.43","NT2.22","NT2.27","NT2.29"],
+ "달리다굼":["NT.44","NT2.22","NT2.27"],
+ "메시야":["NT.46","NT2.22","NT2.38"],
+ "게바":["NT.47","NT2.22","NT2.39","NT2.14"],
+ "랍비":["NT2.43","NT2.22"],
+ "디두모":["NT.48","NT2.5","NT2.37"],
+ "다비다":["NT.49","NT2.22","NT.55","NT2.39","BOTH.0"],
+ "열두사도":["NT.52","NT2.13","NT2.37","NT2.28"],
+ "바울서신":["NT.53","NT2.36"],
+ "베드로행전":["NT.55","NT2.39","NT2.26","NT2.28","NT2.30"],
+ "일곱사람":["NT.57","NT2.44","NT2.17","NT2.23","NT2.26","NT2.30"],
+ "고난주간":["NT.58","NT2.21","NT2.40"],
+ "누가1-2":["NT.59","NT2.15"],
+ "사도행전순서":["NT.60","NT2.17","NT2.18"],
+ "신약목차":["NT.61","NT2.20"],
+ "마태순서":["NT.63","NT2.16"],
+ "어린양":["NT2.14","NT2.32","NT2.38"],
+ "팔복":["NT2.0","NT2.8","NT2.33"],
+ "전신갑주":["NT2.1","NT2.9","NT2.34","NT2.29"],
+ "사랑장":["NT2.2","NT2.11","NT2.29"],
+ "나는":["NT2.3","NT2.10","NT2.32"],
+ "마태13":["NT3.1","NT3.2","NT3.15","NT3.16","NT3.25","NT3.30"],
+ "마태25":["NT3.3","NT3.26","NT3.30"],
+ "고전12":["NT3.4","NT3.19","NT3.28"],
+ "고후12":["NT3.5","NT3.23","NT3.24","NT3.28"],
+ "히브리11":["NT3.6","NT3.17","NT3.28","BOTH3.1"],
+ "새예루살렘":["NT3.7","NT3.22","NT3.27","NT3.24","NT3.28","NT3.29","NT3.30"],
+ "빌립보4":["NT3.10","BOTH3.0"],
+ "베데스다":["NT3.12","NT3.21","NT3.23","NT3.24","NT3.28","NT3.30"],
+ "엠마오":["NT3.13","NT3.21","NT3.23","NT3.24","NT3.28","NT3.30"],
+ "실로암":["NT3.0","NT3.21","NT3.23","NT3.30","OT3.63"],
+ "세족":["NT3.21","NT3.28","NT3.30","BOTH3.0"],
+ "딤후3":["NT3.18","BOTH3.0"],
+ "비유표현":["NT3.29","OT3.58","NT3.28"],
+ "산제물":["NT3.29","NT3.28","BOTH3.0"],
+ "엘리야비":["NT3.24","BOTH3.1"]
+};
+/* 조각 맞추기 자동 주제 묶음 (내부용 · 화면에 표시하지 않음): 정답 철자를 드러내는 다른 문제와 한 판에 함께 나오지 않게 함 */
+Object.assign(GROUPS,{"조각·마헬살랄하스바스":["OT4.0","OT3.33"],
+ "조각·스알야숩":["OT4.1","OT3.33"],
+ "조각·느부갓네살":["OT4.3","OT.21","OT.41","OT.56","OT3.32","OT3.53","OT.46"],
+ "조각·느부사라단":["OT4.4","OT.18"],
+ "조각·벨드사살":["OT4.6","OT.21","OT.56","OT2.28","OT2.33"],
+ "조각·아벳느고":["OT4.7","OT.21","OT.56","OT4.6"],
+ "조각·아스부나스":["OT4.8","OT.21","OT.56","OT2.27","OT.46"],
+ "조각·아하수에로":["OT4.9","OT.24","OT.41","OT3.12"],
+ "조각·아닥사스다":["OT4.10","OT.41"],
+ "조각·디글랏빌레셀":["OT4.11","OT.46"],
+ "조각·므비보셋":["OT4.14","OT.50"],
+ "조각·이스보셋":["OT4.15","OT.46","OT.50"],
+ "조각·아히도벨":["OT4.16","OT.50"],
+ "조각·므두셀라":["OT4.17","OT.1","OT.26","OT.63","OT2.19","OT2.23"],
+ "조각·사브낫바네아":["OT4.18","OT.31","OT2.4","OT2.14","OT2.33"],
+ "조각·보디베라":["OT4.19","OT2.33"],
+ "조각·바알세붑":["OT4.23","NT4.0","OT.46"],
+ "조각·기럇여아림":["OT4.24","OT.50"],
+ "조각·가데스바네아":["OT4.26","OT.46"],
+ "조각·라마다임소빔":["OT4.27","OT.50"],
+ "조각·르호보암":["OT4.28","OT.16","OT2.25"],
+ "조각·여로보암":["OT4.29","OT.16","OT2.13","OT2.25","OT2.31","OT3.42","OT.46"],
+ "조각·여호야긴":["OT4.30","OT4.5"],
+ "조각·여호야김":["OT4.31","OT4.3"],
+ "조각·이스르엘":["OT4.33","OT.35","OT3.21","OT3.33","OT3.50","OT3.56","OT3.61"],
+ "조각·로루하마":["OT4.34","OT3.33","OT3.50","OT3.61","OT.46"],
+ "조각·로암미":["OT4.35","OT3.33","OT3.50","OT3.61","OT.46"],
+ "조각·바르실래":["OT4.36","OT.50"],
+ "조각·바알세불":["NT4.0","OT4.23"],
+ "조각·달리다굼":["NT4.1","NT.39","NT.44","NT2.22","NT2.27"],
+ "조각·엘리엘리라마사박다니":["NT4.2","NT.38","NT.42"],
+ "조각·겟세마네":["NT4.3","NT.8","NT.27","NT.58","NT2.40","NT.47"],
+ "조각·아리마대":["NT4.4","NT.5","NT.11","NT2.21","NT2.23"],
+ "조각·베데스다":["NT4.5","NT3.11","NT3.12","NT3.21","NT3.23","NT3.24","NT3.28","NT3.30"],
+ "조각·가버나움":["NT4.6","NT.4","NT.25","NT.37","NT.47"],
+ "조각·빌립보가이사랴":["NT4.7","NT.37","NT.41","NT.63","NT2.24","NT2.39","NT2.40","NT.46","NT.47"],
+ "조각·데가볼리":["NT4.8","NT.37"],
+ "조각·바돌로매":["NT4.9","NT.48","NT.52","NT2.13"],
+ "조각·니고데모":["NT4.10","NT.2","NT.5","NT.11","NT.35","NT.51","NT.52","NT2.14","NT2.27","NT2.28","NT2.29","NT2.32"],
+ "조각·바디매오":["NT4.11","OT3.59","OT3.62","NT3.11","NT3.21","NT3.23","NT3.28","NT3.30"],
+ "조각·아나니아":["NT4.12","NT.15","NT.16","NT.35","NT.60","NT2.25","NT2.26","NT2.30","NT.47"],
+ "조각·두아디라":["NT4.13","NT.18","NT.24","NT.54","NT.62","NT2.6","NT2.19","NT2.23","NT2.35"],
+ "조각·데살로니가":["NT4.14","NT.34","NT.54","BOTH3.0"],
+ "조각·아레오바고":["NT4.16","NT.34","NT2.6","NT2.18","NT2.30","NT3.9","NT4.15","NT.50"],
+ "조각·브리스길라":["NT4.17","NT.18","NT.20","NT2.18","NT2.25","NT2.30"],
+ "조각·아그립바":["NT4.19","NT.46"],
+ "조각·오네시모":["NT4.20","NT.21"],
+ "조각·에바브로디도":["NT4.22","NT.21"],
+ "조각·빌라델비아":["NT4.24","NT.24","NT.54","NT.62","NT2.19","NT2.35"],
+ "조각·라오디게아":["NT4.25","NT.24","NT.54","NT.62","NT2.19","NT2.29","NT2.35"],
+ "조각·갑바도기아":["NT4.27","NT.47"],
+ "조각·메소보다미아":["NT4.28","NT2.44"],
+ "조각·데나리온":["NT4.29","NT.30","NT2.4","NT3.24"],
+ "조각·임마누엘":["BOTH4.0","OT3.31","NT.40","NT.46","NT2.16","NT2.22"],
+ "조각·가브리엘":["BOTH4.1","NT.59"],
+ "조각·멜기세덱":["BOTH4.2","OT.8"]});
+
+const withId=(arr,n)=>arr.map((x,i)=>({...x,id:n+"."+i}));
+[["OT",OT],["OT2",OT2],["OT3",OT3],["OT4",OT4],["NT",NT],["NT2",NT2],["NT3",NT3],["NT4",NT4],["BOTH",BOTH],["BOTH3",BOTH3],["BOTH4",BOTH4]].forEach(([n,a])=>{const w=withId(a,n);a.length=0;a.push(...w);});
+// 주제 묶음: 문제 id → 속한 묶음들 (내부용, 화면에 표시하지 않음)
+const GMAP={};
+for(const g in GROUPS) for(const id of GROUPS[g]) (GMAP[id]=GMAP[id]||[]).push(g);
+const tag=(arr,t)=>arr.map(x=>({...x,type:x.type||"choice",t}));
+const RANGES={
+  ot:{name:"구약",desc:"창세기부터 말라기까지",pool:tag([...OT,...OT2,...OT3,...OT4],"구약")},
+  nt:{name:"신약",desc:"마태복음부터 요한계시록까지",pool:tag([...NT,...NT2,...NT3,...NT4],"신약")},
+  all:{name:"전체",desc:"구약과 신약을 섞어서",pool:[...tag([...OT,...OT2,...OT3,...OT4],"구약"),...tag([...NT,...NT2,...NT3,...NT4],"신약"),...tag([...BOTH,...BOTH3,...BOTH4],"구약·신약")]}
+};
+const KIND={choice:"",verse:"본문 읽기",multi:"모두 고르기",order:"순서 배열",match:"짝짓기",piece:"조각 맞추기"};
+const HOWTO={
+  choice:"보기를 하나 고른 뒤 제출하세요.",
+  verse:"위의 구절을 열어 읽은 뒤, 보기를 하나 골라 제출하세요.",
+  multi:"해당하는 것을 모두 고른 뒤 제출하세요. 하나라도 틀리면 오답이에요.",
+  order:"먼저인 것부터 차례로 누르세요. 다시 누르면 취소돼요.",
+  match:"위쪽 항목을 누른 뒤 짝이 되는 아래쪽 항목을 누르세요. 다시 누르면 취소돼요.",
+  piece:"조각을 앞에서부터 차례로 눌러 이어 붙이세요. 필요 없는 조각도 섞여 있어요. 놓은 조각을 다시 누르면 빠져요."
+};
+const single=t=>t==="choice"||t==="verse";
+const verseUrl=([b,c,v])=>`https://www.bskorea.or.kr/bible/korbibReadpage.php?version=GAE&book=${b}&chap=${c}&sec=${v}`;
+const ROUND=30;
+const app=document.getElementById('app');
+let range='all', round=[], idx=0, answers=[], sel=null;
+
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=arr=>{const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const pickQ=q=>Array.isArray(q)?q[rnd(q.length)]:q;
+const getBest=k=>{try{return parseInt(localStorage.getItem('bq-best'+ROUND+'-'+k)||'',10);}catch(e){return NaN;}};
+const setBest=(k,v)=>{try{localStorage.setItem('bq-best'+ROUND+'-'+k,String(v));}catch(e){}};
+try{const r=localStorage.getItem('bq-range');if(RANGES[r])range=r;}catch(e){}
+// 성적 등급: 80% 이상 A, 50% 이상 B, 그 아래 C
+const cutA=n=>Math.ceil(n*0.8), cutB=n=>Math.ceil(n*0.5);
+const rankOf=(s,n)=>s>=cutA(n)?'A':s>=cutB(n)?'B':'C';
+const NOTCH={ot:'구',nt:'신',all:'전'};
+const tNotch=t=>t==='구약'?'구':t==='신약'?'신':'전';
+const countOf=pool=>pool.reduce((n,f)=>n+(f.type==="choice"?2:1),0);
+
+function top(){window.scrollTo({top:0,behavior:'auto'});}
+
+function renderStart(){
+  const items=Object.entries(RANGES).map(([k,r])=>{
+    const b=getBest(k);
+    return `<button class="range" id="r-${k}" data-k="${k}" aria-pressed="${k===range}">
+      <span class="notch" aria-hidden="true">${NOTCH[k]}</span>
+      <div class="t"><strong>${r.name}</strong><span>${r.desc}</span><span>${countOf(r.pool)}문제 중 ${ROUND}문제</span></div>
+      <div class="best">${isNaN(b)?'첫 도전':`<b>${rankOf(b,ROUND)}</b>최고 ${b}점`}</div></button>`;
+  }).join('');
+  app.innerHTML=`
+    <header class="cover leather"><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1><p>개역개정 성경으로 푸는 서른 문제</p><div class="orn" aria-hidden="true"></div></header>
+    <section class="sheet">
+      <div class="label">범위를 고르세요</div>
+      <div class="ranges">${items}</div>
+      <button class="primary" id="go">시작하기</button>
+      <p class="note">하나 고르기, 모두 고르기, 순서 배열, 짝짓기, 조각 맞추기, 본문 읽기가 섞여 나와요. 답을 고른 뒤 제출해야 채점되니 잘못 눌러도 바꿀 수 있어요. 막히면 힌트를 열어 보세요. 본문 읽기 문제는 대한성서공회 사이트에서 구절을 열어 읽어요.</p>
+    </section>`;
+  app.querySelectorAll('.range').forEach(b=>b.addEventListener('click',()=>{
+    range=b.dataset.k; try{localStorage.setItem('bq-range',range);}catch(e){}
+    app.querySelectorAll('.range').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  }));
+  document.getElementById('go').addEventListener('click',startRound);
+  top();
+}
+
+// 정답 하나 + 오답 후보 중 무작위 3개
+function pickSingle(a){
+  const opts=shuffle([a[0],...shuffle(a.slice(1)).slice(0,3)]);
+  return {opts,correct:opts.indexOf(a[0])};
+}
+
+function build(f){
+  const base={type:f.type,t:f.t,ref:f.ref,ex:f.ex,h:f.h};
+  if(f.type==="multi"){
+    const maxYes=Math.min(4,f.yes.length), minYes=Math.max(2,5-f.no.length);
+    const k=minYes+rnd(maxYes-minYes+1);
+    const items=[...shuffle(f.yes).slice(0,k).map(s=>({s,y:true})),...shuffle(f.no).slice(0,5-k).map(s=>({s,y:false}))];
+    const mixed=shuffle(items);
+    return {...base,q:pickQ(f.q),opts:mixed.map(x=>x.s),correct:mixed.map((x,i)=>x.y?i:-1).filter(i=>i>=0)};
+  }
+  if(f.type==="order"){
+    const picks=shuffle(f.seq.map((_,i)=>i)).slice(0,4).sort((a,b)=>a-b);
+    const truth=picks.map(i=>f.seq[i]);
+    const opts=shuffle(truth);
+    return {...base,q:pickQ(f.q),opts,correct:truth.map(s=>opts.indexOf(s))};
+  }
+  if(f.type==="match"){
+    const chosen=[], usedL=new Set(), usedR=new Set();
+    for(const p of shuffle(f.pairs)){
+      if(usedL.has(p[0])||usedR.has(p[1])) continue;
+      chosen.push(p); usedL.add(p[0]); usedR.add(p[1]);
+      if(chosen.length===4) break;
+    }
+    const lefts=shuffle(chosen.map(p=>p[0]));
+    const rights=shuffle(chosen.map(p=>p[1]));
+    const correct=lefts.map(l=>rights.indexOf(chosen.find(p=>p[0]===l)[1]));
+    return {...base,q:pickQ(f.q),L:f.L,R:f.R,opts:lefts,rights,correct};
+  }
+  if(f.type==="piece"){
+    const opts=shuffle([...f.w,...shuffle(f.d).slice(0,2)]);
+    return {...base,q:pickQ(f.q),opts,w:f.w,a:f.a||f.w.join('')};
+  }
+  if(f.type==="verse"){
+    return {...base,q:f.q,url:verseUrl(f.l),...pickSingle(f.a)};
+  }
+  const [q,a]=f.v[rnd(2)];
+  return {...base,q,...pickSingle(a)};
+}
+
+// 한 판 구성: 유형 비율(하나 고르기 45 · 모두 고르기/순서/짝짓기 각 15 · 본문 10)을 맞춰 뽑고,
+// 같은 문제·같은 주제 묶음은 한 판에 한 번만. 주제 묶음은 내부용이라 화면에 나오지 않음.
+function pickRound(pool,n){
+  for(let k=0;k<50;k++){ const r=tryRound(pool,n); if(r.length>=n) return r; }
+  return tryRound(pool,n);
+}
+// 한 판의 유형별 개수: 범위 안 문제 수 비율(하나 고르기는 2문제로 셈)을 그대로 따름
+function quotaFor(pool,n){
+  const w={}; let tot=0;
+  for(const f of pool){ const x=f.type==="choice"?2:1; w[f.type]=(w[f.type]||0)+x; tot+=x; }
+  const q={}, fr=[]; let sum=0;
+  for(const t in w){ const e=n*w[t]/tot; q[t]=Math.floor(e); sum+=q[t]; fr.push([t,e-q[t]]); }
+  for(let left=n-sum;left>0&&fr.length;left--){
+    let r=Math.random()*fr.reduce((x,y)=>x+y[1],0), k=0;
+    for(;k<fr.length-1;k++){ r-=fr[k][1]; if(r<0) break; }
+    q[fr[k][0]]++; fr.splice(k,1);
+  }
+  return q;
+}
+function tryRound(pool,n){
+  const quota=quotaFor(pool,n);
+  const byType={};
+  for(const f of shuffle(pool)) (byType[f.type]=byType[f.type]||[]).push(f);
+  const usedG=new Set(), picked=new Set();
+  const ok=f=>!picked.has(f)&&!(GMAP[f.id]||[]).some(g=>usedG.has(g));
+  const take=f=>{picked.add(f);(GMAP[f.id]||[]).forEach(g=>usedG.add(g));};
+  // 묶음에 많이 걸리는 유형부터 채워야 비율이 덜 흐트러짐
+  for(const t of ["match","order","multi","piece","verse","choice"]){
+    let need=quota[t]||0;
+    for(const f of byType[t]||[]){ if(!need) break; if(ok(f)){take(f);need--;} }
+  }
+  // 모자라면 아무 유형으로나 채움
+  for(const f of shuffle(pool)){ if(picked.size>=n) break; if(ok(f)) take(f); }
+  return shuffle([...picked]).slice(0,n);
+}
+function startRound(){
+  round=pickRound(RANGES[range].pool,ROUND).map(build);
+  idx=0; answers=[];
+  renderQuestion();
+}
+
+const btn=(i,txt,side='')=>`<button class="opt" data-i="${i}"${side?` data-side="${side}"`:''} aria-pressed="false"><span class="n"></span><span class="txt">${esc(txt)}</span><span class="mark"></span></button>`;
+
+function renderQuestion(){
+  const it=round[idx];
+  sel=single(it.type)?null:it.type==="match"?{active:null,map:it.opts.map(()=>-1)}:[];
+  const verseCard=it.type==="verse"?`
+    <a class="versecard leather" href="${it.url}" target="_blank" rel="noopener noreferrer">
+      <span class="vlabel">이 구절</span>
+      <span class="vref">${esc(it.ref)}</span>
+      <span class="vopen">본문 열기
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+    </a>`:'';
+  const body=it.type==="piece"
+    ? `<div class="slots" style="--n:${it.w.length}">${it.w.map((_,k)=>`<button class="slot" data-k="${k}" aria-label="${k+1}번째 칸"><span class="sn">${k+1}</span><span class="st"></span><span class="sm"></span></button>`).join('')}</div>
+       <div class="opts piece">${it.opts.map((o,i)=>btn(i,o)).join('')}</div>`
+    : it.type==="match"
+    ? `<div class="matchwrap">
+        <div class="mlabel">${esc(it.L||'왼쪽')}</div>
+        <div class="opts match mL">${it.opts.map((o,i)=>btn(i,o,'L')).join('')}</div>
+        <div class="mlabel">${esc(it.R||'오른쪽')}</div>
+        <div class="opts match mR">${it.rights.map((o,i)=>btn(i,o,'R')).join('')}</div>
+      </div>`
+    : `<div class="opts ${single(it.type)?'choice':it.type}">${it.opts.map((o,i)=>btn(i,o)).join('')}</div>`;
+  app.innerHTML=`
+    <div class="edge" aria-hidden="true"><i style="width:${(idx/round.length)*100}%"></i></div>
+    <div class="ribbon" aria-label="${round.length}문제 중 ${idx+1}번째">${idx+1}<small>/ ${round.length}</small></div>
+    <div class="qhead"><span class="notch" aria-hidden="true">${tNotch(it.t)}</span><span class="kind">${KIND[it.type]||'하나 고르기'}</span><span class="tname">${it.t}</span></div>
+    ${verseCard}
+    <h2 class="qtext">${esc(it.q)}</h2>
+    <p class="howto">${HOWTO[it.type]}</p>
+    <div class="tools">
+      <button class="hintbtn" id="hintBtn" aria-expanded="false" aria-controls="hintBox">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+        힌트 보기</button>
+      ${it.type==="order"||it.type==="match"||it.type==="piece"?'<button class="resetbtn" id="resetBtn">다시 놓기</button>':''}
+    </div>
+    <p class="hintbox" id="hintBox" hidden><b>힌트</b>${esc(it.h)}</p>
+    ${body}
+    <button class="primary" id="submit" disabled>제출하기</button>
+    <div id="fb"></div>`;
+  it.hintUsed=false;
+  const hb=document.getElementById('hintBtn');
+  hb.addEventListener('click',()=>{
+    it.hintUsed=true;
+    document.getElementById('hintBox').hidden=false;
+    hb.setAttribute('aria-expanded','true');
+    hb.hidden=true;
+  });
+  const rb=document.getElementById('resetBtn');
+  if(rb) rb.addEventListener('click',()=>{sel=it.type==="match"?{active:null,map:it.opts.map(()=>-1)}:[];paint();});
+  app.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>pick(+b.dataset.i,b.dataset.side)));
+  app.querySelectorAll('.slot').forEach(b=>b.addEventListener('click',()=>{
+    if(answers.length>idx) return;
+    const k=+b.dataset.k; if(k<sel.length){ sel.splice(k,1); paint(); }
+  }));
+  document.getElementById('submit').addEventListener('click',submit);
+  paint();
+  top();
+}
+
+function pick(i,side){
+  const it=round[idx];
+  if(answers.length>idx) return;
+  if(single(it.type)) sel=i;
+  else if(it.type==="match"){
+    if(side==="L"){
+      if(sel.map[i]>=0){ sel.map[i]=-1; sel.active=i; }
+      else sel.active=sel.active===i?null:i;
+    }else{
+      const owner=sel.map.indexOf(i);
+      if(owner>=0){ sel.map[owner]=-1; if(sel.active!==null){ sel.map[sel.active]=i; sel.active=null; } }
+      else if(sel.active!==null){ sel.map[sel.active]=i; sel.active=null; }
+    }
+  }
+  else{
+    const at=sel.indexOf(i);
+    if(at>=0) sel.splice(at,1); else if(it.type==="multi"||sel.length<(it.type==="piece"?it.w.length:it.opts.length)) sel.push(i);
+  }
+  paint();
+}
+
+function paint(){
+  const it=round[idx];
+  if(it.type==="match"){
+    app.querySelectorAll('.mL .opt').forEach((b,i)=>{
+      const on=sel.active===i, paired=sel.map[i]>=0;
+      b.classList.toggle('sel',on); b.classList.toggle('paired',paired);
+      b.setAttribute('aria-pressed',String(on));
+      b.querySelector('.n').textContent=String(i+1);
+    });
+    app.querySelectorAll('.mR .opt').forEach((b,j)=>{
+      const owner=sel.map.indexOf(j);
+      b.classList.toggle('paired',owner>=0);
+      b.classList.toggle('waiting',sel.active!==null&&owner<0);
+      b.querySelector('.n').textContent=owner>=0?String(owner+1):'';
+    });
+    document.getElementById('submit').disabled=!sel.map.every(v=>v>=0);
+    return;
+  }
+  app.querySelectorAll('.opt').forEach((b,i)=>{
+    let on=false, label='';
+    if(single(it.type)){on=sel===i;label=String(i+1);}
+    else if(it.type==="multi"){on=sel.includes(i);label=on?'✓':'';}
+    else{const p=sel.indexOf(i);on=p>=0;label=on?String(p+1):'';}
+    b.classList.toggle('sel',on);
+    b.setAttribute('aria-pressed',String(on));
+    b.querySelector('.n').textContent=label;
+  });
+  if(it.type==="piece"){
+    app.querySelectorAll('.slot').forEach((b,k)=>{
+      const has=k<sel.length;
+      b.classList.toggle('filled',has);
+      b.classList.toggle('next',k===sel.length);
+      b.querySelector('.st').textContent=has?it.opts[sel[k]]:'';
+    });
+  }
+  const ready=single(it.type)?sel!==null:it.type==="multi"?sel.length>0:it.type==="piece"?sel.length===it.w.length:sel.length===it.opts.length;
+  document.getElementById('submit').disabled=!ready;
+}
+
+function grade(it,s){
+  if(single(it.type)) return s===it.correct;
+  if(it.type==="multi") return s.length===it.correct.length&&it.correct.every(i=>s.includes(i));
+  if(it.type==="match") return s.every((v,i)=>v===it.correct[i]);
+  if(it.type==="piece") return s.length===it.w.length&&s.map(i=>it.opts[i]).join("")===it.w.join("");
+  return s.length===it.correct.length&&s.every((v,k)=>v===it.correct[k]);
+}
+const pairsText=(it,m)=>it.opts.map((l,i)=>`${esc(l)} — ${esc(it.rights[m[i]])}`).join(' / ');
+const answerText=it=>it.type==="piece"?esc(it.a):single(it.type)?esc(it.opts[it.correct]):it.type==="multi"?it.correct.map(i=>esc(it.opts[i])).join(', '):it.type==="match"?pairsText(it,it.correct):it.correct.map(i=>esc(it.opts[i])).join(' → ');
+const pickText=(it,s)=>it.type==="piece"?esc(s.map(i=>it.opts[i]).join("")):single(it.type)?esc(it.opts[s]):it.type==="multi"?s.map(i=>esc(it.opts[i])).join(', '):it.type==="match"?pairsText(it,s):s.map(i=>esc(it.opts[i])).join(' → ');
+const refHtml=it=>it.url?`<a class="ref" href="${it.url}" target="_blank" rel="noopener noreferrer">${esc(it.ref)} 본문 보기</a>`:`<div class="ref">${esc(it.ref)}</div>`;
+
+function submit(){
+  const it=round[idx];
+  if(answers.length>idx) return;
+  const s=it.type==="match"?sel.map.slice():Array.isArray(sel)?sel.slice():sel;
+  const right=grade(it,s);
+  answers.push({pick:s,right,hint:it.hintUsed});
+  document.getElementById('hintBtn').hidden=true;
+  const rb=document.getElementById('resetBtn'); if(rb) rb.hidden=true;
+  document.getElementById('submit').hidden=true;
+  if(it.type==="match"){
+    app.querySelectorAll('.mL .opt').forEach((b,i)=>{
+      b.disabled=true; b.classList.remove('sel','paired');
+      const ok=s[i]===it.correct[i];
+      b.classList.add(ok?'ok':'bad');
+      if(!ok) b.querySelector('.mark').textContent='짝 틀림';
+    });
+    app.querySelectorAll('.mR .opt').forEach((b,j)=>{
+      b.disabled=true; b.classList.remove('paired','waiting');
+      const owner=s.indexOf(j), truth=it.correct.indexOf(j);
+      b.classList.add(owner===truth?'ok':'bad');
+      b.querySelector('.n').textContent=String(truth+1);
+      if(owner!==truth) b.querySelector('.mark').textContent=`정답 ${truth+1}번`;
+    });
+  }else if(it.type==="piece"){
+    app.querySelectorAll('.slot').forEach((b,k)=>{
+      b.disabled=true; b.classList.remove('next');
+      const ok=it.opts[s[k]]===it.w[k];
+      b.classList.add(ok?'ok':'bad');
+      if(!ok) b.querySelector('.sm').textContent=it.w[k];
+    });
+    app.querySelectorAll('.opt').forEach((b,i)=>{
+      b.disabled=true; b.classList.remove('sel');
+      if(it.w.includes(it.opts[i])) b.classList.add('ok');
+      else { b.classList.add('dim'); b.querySelector('.mark').textContent='미끼'; }
+    });
+  }else app.querySelectorAll('.opt').forEach((b,i)=>{
+    b.disabled=true; b.classList.remove('sel');
+    const mark=b.querySelector('.mark');
+    if(single(it.type)){
+      if(i===it.correct) b.classList.add('ok'); else if(i===s) b.classList.add('bad'); else b.classList.add('dim');
+    }else if(it.type==="multi"){
+      const isY=it.correct.includes(i), chosen=s.includes(i);
+      if(isY&&chosen) b.classList.add('ok');
+      else if(isY){b.classList.add('miss');mark.textContent='놓친 정답';}
+      else if(chosen){b.classList.add('bad');mark.textContent='오답';}
+      else b.classList.add('dim');
+    }else{
+      const mine=s.indexOf(i), truth=it.correct.indexOf(i);
+      b.classList.add(mine===truth?'ok':'bad');
+      if(mine!==truth) mark.textContent=`정답 ${truth+1}번째`;
+    }
+  });
+  app.querySelector('.edge i').style.width=((idx+1)/round.length*100)+'%';
+  const last=idx===round.length-1;
+  const fb=document.getElementById('fb');
+  const correctLine=it.type==="piece"
+    ? `<p>정답은 <b>${esc(it.a)}</b>예요. (${it.w.map(esc).join(' + ')})</p>`
+    : it.type==="order"
+    ? `<p>올바른 순서예요.</p><ol class="seqlist">${it.correct.map(i=>`<li>${esc(it.opts[i])}</li>`).join('')}</ol>`
+    : it.type==="match"
+    ? `<p>올바른 짝이에요.</p><ol class="seqlist">${it.opts.map((l,i)=>`<li>${esc(l)} — <b>${esc(it.rights[it.correct[i]])}</b></li>`).join('')}</ol>`
+    : `<p>정답은 <b>${answerText(it)}</b>예요.</p>`;
+  fb.innerHTML=`
+    <div class="feedback ${right?'right':'wrong'}">
+      <div class="verdict">${right?'정답이에요':'아쉬워요'}</div>
+      ${right&&it.type!=="order"&&it.type!=="match"?'':correctLine}
+      <p>${esc(it.ex)}</p>
+      ${refHtml(it)}
+    </div>
+    <button class="primary" id="next" style="margin-top:14px">${last?'결과 보기':'다음 문제'}</button>`;
+  const nb=document.getElementById('next');
+  nb.addEventListener('click',()=>{ if(last) renderResult(); else { idx++; renderQuestion(); } });
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fb.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
+  try{nb.focus({preventScroll:true});}catch(e){}
+}
+
+function renderResult(){
+  const score=answers.filter(a=>a.right).length;
+  const hints=answers.filter(a=>a.hint).length;
+  const prev=getBest(range);
+  const record=isNaN(prev)||score>prev;
+  if(record) setBest(range,score);
+  const msg=score===round.length?'모두 맞히셨어요.':score>=round.length*0.8?'아주 잘하셨어요.':score>=round.length*0.5?'절반 넘게 맞히셨어요.':'다음 판에서 다시 도전해 보세요.';
+  const wrong=round.map((it,i)=>({it,a:answers[i]})).filter(x=>!x.a.right);
+  const label=(it,mine)=>it.type==="piece"?(mine?'내가 맞춘 답':'정답'):it.type==="order"?(mine?'내가 놓은 순서':'올바른 순서'):it.type==="match"?(mine?'내가 지은 짝':'올바른 짝'):(mine?'고른 답':'정답');
+  const review=wrong.length?wrong.map(({it,a})=>`
+    <div class="ritem">
+      <div class="chips">${KIND[it.type]?`<span class="tag kindtag">${KIND[it.type]}</span>`:''}${a.hint?'<span class="tag">힌트 사용</span>':''}</div>
+      <div class="rq">${esc(it.q)}</div>
+      <div class="mine">${label(it,true)}: ${pickText(it,a.pick)}</div>
+      <div class="ans">${label(it,false)}: ${answerText(it)}</div>
+      <p>${esc(it.ex)}</p>
+      ${refHtml(it)}
+    </div>`).join(''):`<p class="allright">틀린 문제가 없어요.</p>`;
+  const rank=rankOf(score,round.length), n=round.length;
+  const scale=[['A',`${cutA(n)}점 이상`],['B',`${cutB(n)}~${cutA(n)-1}점`],['C',`${cutB(n)-1}점 이하`]]
+    .map(([g,t])=>`<div class="${g===rank?'on':''}"><b>${g}</b>${t}</div>`).join('');
+  app.innerHTML=`
+    <header class="rhead leather">
+      <span class="rrange"><span class="notch rn" aria-hidden="true">${NOTCH[range]}</span>${RANGES[range].name}</span>
+      <div class="seal g${rank}" role="img" aria-label="${rank}등급"><b>${rank}</b><small>등급</small></div>
+      <div class="rscore"><b>${score}</b>/ ${n}점</div>
+      <p class="rmsg">${msg}</p>
+    </header>
+    <section class="rsheet">
+      <div class="scale">${scale}</div>
+      <p class="note">${hints?'힌트를 '+hints+'번 썼어요. ':''}${record?'이 범위의 최고 점수예요.':'이 범위 최고 점수는 '+prev+'점('+rankOf(prev,n)+')이에요.'}</p>
+      <div class="row"><button class="primary" id="again">같은 범위로 다시 하기</button><button class="secondary" id="home">범위 바꾸기</button></div>
+      <div class="label">${wrong.length?'틀린 문제 다시 보기':'결과'}</div>
+      <div class="review">${review}</div>
+    </section>`;
+  document.getElementById('again').addEventListener('click',startRound);
+  document.getElementById('home').addEventListener('click',renderStart);
+  top();
+}
+
+renderStart();
+})();
+</script>
+</body>
+</html>
