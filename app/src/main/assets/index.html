@@ -415,6 +415,14 @@ button,a{-webkit-tap-highlight-color:transparent}
 .uppanel .notes b{display:block;font-size:14px;color:var(--muted);font-weight:600;margin-bottom:2px}
 .uppanel .tip{margin:0;font-size:14.5px;color:var(--muted);line-height:1.55}
 .upbtns{display:grid;gap:8px}
+.bkpill.vspill{right:auto;left:30px}
+.vspanel .vsapk{font-size:14px;color:var(--muted)}
+.vspanel .vsnew{color:var(--bad);font-weight:600}
+.vslist b{display:block;font-size:15px;color:var(--muted);margin:2px 0 6px}
+.vslist ol{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.vslist li{padding:10px 2px;border-top:1px solid var(--line);font-size:15.5px;line-height:1.5}
+.vslist .vh{display:flex;justify-content:space-between;font-weight:700;font-size:15px;margin-bottom:2px}
+.vslist .vh i{font-style:normal;font-weight:400;color:var(--muted);font-size:14px}
 .dexmodal.center{align-items:center}
 .dexpanel{position:relative}
 .xbtn{position:absolute;top:10px;right:10px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:999px;background:transparent;color:var(--muted)}
@@ -1675,6 +1683,28 @@ const countOf=pool=>pool.reduce((n,f)=>n+(f.type==="choice"?2:1),0);
 
 function top(){window.scrollTo({top:0,behavior:'auto'});}
 
+// 버전 정보: 빌드할 때 버전과 패치 노트가 이 자리에 들어감
+const BUILD=/*BQBUILD*/null;
+const fmtDay=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');return m?`${+m[2]}월 ${+m[3]}일`:'';};
+function showVersion(){
+  const old=document.getElementById('dexmodal'); if(old) old.remove();
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal center';
+  const cur=BUILD?BUILD.name:(APPVER?(APPVER.contentName||APPVER.name):'');
+  const apk=APPVER&&APPVER.name&&APPVER.name!==cur?APPVER.name:'';
+  const hist=(BUILD&&BUILD.history||[]).slice().reverse();
+  m.innerHTML=`<div class="dexpanel bkpanel vspanel" role="dialog" aria-modal="true" aria-label="버전 정보">${XBTN}
+    <h3>버전 정보</h3>
+    <div class="bkbox"><b>${cur?`지금 버전 ${esc(cur)}`:'웹 미리보기 버전'}</b>${apk?`<span class="vsapk">앱 ${esc(apk)}</span>`:''}
+      ${UPD?`<span class="vsnew">새 버전 ${esc(UPD.name)}이 나왔어요</span>`:UPDCHECKED?`<span class="okt">최신 버전이에요</span>`:''}</div>
+    ${UPD?`<button class="primary" id="vsupd">업데이트 보기</button>`:''}
+    ${hist.length?`<div class="vslist"><b>업데이트 기록</b><ol>${hist.map(h=>`<li><span class="vh">${esc('1.0.'+h.v)}<i>${esc(fmtDay(h.d))}</i></span>${esc(h.n)}</li>`).join('')}</ol></div>`:''}
+  </div>`;
+  const close=()=>m.remove();
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
+  m.querySelector('#xclose').addEventListener('click',close);
+  const u=m.querySelector('#vsupd'); if(u) u.addEventListener('click',()=>showUpdate(true));
+  document.body.appendChild(m);
+}
 // 문제가 늘었으면(문제 업데이트) 시작 화면에 한 번 알려 줌
 let NEWQ=0;
 try{const k=+localStorage.getItem('bq-count')||0, n=ALL.length; if(k&&n>k) NEWQ=n-k; localStorage.setItem('bq-count',String(n));}catch(e){}
@@ -1696,7 +1726,7 @@ function renderStart(){
   const mini=DEX.map(f=>{const c=dexCls(STATS[f.id]);return c?`<i class="${c}"></i>`:'<i></i>';}).join('');
   app.className='wrap '+SCREEN;
   app.innerHTML=`
-    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1>${!UPD&&NEWQ?`<p class="newq">새 문제 ${NEWQ}개가 들어왔어요</p>`:UPD?'<button class="uppill" id="upd"><i aria-hidden="true"></i>새 버전이 나왔어요 · 업데이트</button>':'<p>개역개정 성경으로 푸는 서른 문제</p>'}<div class="orn" aria-hidden="true"></div></header>
+    <header class="cover leather"><button class="bkpill vspill" id="vs" aria-label="버전 확인">버전 확인</button><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1>${!UPD&&NEWQ?`<p class="newq">새 문제 ${NEWQ}개가 들어왔어요</p>`:UPD?'<button class="uppill" id="upd"><i aria-hidden="true"></i>새 버전이 나왔어요 · 업데이트</button>':'<p>개역개정 성경으로 푸는 서른 문제</p>'}<div class="orn" aria-hidden="true"></div></header>
     <section class="sheet">
       <div class="label">범위를 고르세요</div>
       <div class="ranges">${items}</div>
@@ -1713,6 +1743,7 @@ function renderStart(){
   document.getElementById('go').addEventListener('click',()=>{ NEWQ=0; startRound(); });
   document.getElementById('dex').addEventListener('click',renderDex);
   document.getElementById('bk').addEventListener('click',showBackup);
+  document.getElementById('vs').addEventListener('click',showVersion);
   const ub=document.getElementById('upd'); if(ub) ub.addEventListener('click',showUpdate);
   top();
 }
@@ -1796,12 +1827,12 @@ function sendReports(after){
 }
 // 앱 안 업데이트 (APK에서만): 새 버전이 있으면 표지에 알림을 띄우고, 누르면 받아서 설치 화면을 연다
 const APPVER=(()=>{try{return NATIVE&&NATIVE.appVersion?JSON.parse(NATIVE.appVersion()):null;}catch(e){return null;}})();
-let UPD=null;
+let UPD=null, UPDCHECKED=false;
 try{const c=JSON.parse(localStorage.getItem('bq-upd')||'null'); if(c&&c.info&&APPVER&&c.info.code>(APPVER.content||APPVER.code)) UPD=c.info;}catch(e){}
 const updPanel={el:null,draw:null};
 window.BQUpdate={
-  info(x){ UPD=x; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:x}));}catch(e){} if(app.classList.contains('start')){ renderStart(); popUpdateOnce(); } },
-  none(){ UPD=null; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:null}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
+  info(x){ UPD=x; UPDCHECKED=true; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:x}));}catch(e){} if(app.classList.contains('start')){ renderStart(); popUpdateOnce(); } },
+  none(){ UPD=null; UPDCHECKED=true; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:null}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
   progress(p){ updPanel.draw&&updPanel.draw('down',p); },
   done(){ updPanel.draw&&updPanel.draw('install'); },
   perm(){ updPanel.draw&&updPanel.draw('perm'); },

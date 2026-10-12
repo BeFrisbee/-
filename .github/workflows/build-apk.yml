@@ -26,6 +26,13 @@ jobs:
       - name: 안드로이드 SDK 확인
         run: echo "ANDROID_HOME=$ANDROID_HOME" && ls "$ANDROID_HOME/platforms" | tail -3
 
+      - name: 업데이트 정보 만들기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo "${{ github.repository }}" --pattern quiz-meta.json --dir prev || echo "이전 정보 없음"
+          python3 .github/make-meta.py ${{ github.run_number }}
+
       - name: APK 만들기
         run: gradle --no-daemon assembleRelease -PversionCode=${{ github.run_number }}
 
@@ -38,13 +45,6 @@ jobs:
         with:
           name: bible-quiz-apk
           path: out/*.apk
-
-      - name: 업데이트 정보 만들기
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download --repo "${{ github.repository }}" --pattern quiz-meta.json --dir prev || echo "이전 정보 없음"
-          python3 .github/make-meta.py ${{ github.run_number }}
 
       - name: 릴리스에 APK·퀴즈 파일 올리기
         uses: softprops/action-gh-release@v2

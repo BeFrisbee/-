@@ -2,6 +2,7 @@
 release.json 의 kind: questions(문제만 · 자동 적용) / feature(기능 · 알림 후 적용) / native(앱 새로 설치)
 app/native-level 이 올라가면 앱(APK)을 새로 깔아야 하는 업데이트로 본다."""
 import json, os, shutil, sys
+from datetime import datetime, timedelta, timezone
 
 run = int(sys.argv[1])
 rel = json.load(open('release.json', encoding='utf-8'))
@@ -23,6 +24,20 @@ if native > prev.get('native', 0):
 if kind in ('feature', 'native'):
     meta['featureSince'] = run
     meta['featureNotes'] = notes
+# 패치 노트: 지난 릴리스 기록에 이번 것을 더해 퀴즈 파일에 심음 (버전 확인 창에서 보여 줌)
+history = prev.get('history') or json.load(open('changelog-seed.json', encoding='utf-8'))
+history = [h for h in history if h.get('v') != run]
+today = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%d')
+history.append({'v': run, 'd': today, 'n': notes})
+meta['history'] = history
+page = 'app/src/main/assets/index.html'
+html = open(page, encoding='utf-8').read()
+mark = '/*BQBUILD*/null'
+if mark not in html:
+    sys.exit('퀴즈 파일에 버전 자리(/*BQBUILD*/null)가 없어요')
+build = {'v': run, 'name': '1.0.%d' % run, 'history': history[-30:]}
+html = html.replace(mark, json.dumps(build, ensure_ascii=False).replace('</', '<\\/'))
+open(page, 'w', encoding='utf-8').write(html)
 os.makedirs('out', exist_ok=True)
 json.dump(meta, open('out/quiz-meta.json', 'w', encoding='utf-8'), ensure_ascii=False)
 shutil.copy('app/src/main/assets/index.html', 'out/quiz.html')
