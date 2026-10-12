@@ -239,12 +239,18 @@ public class MainActivity extends Activity {
         web.saveState(outState);
     }
 
-    /** 실수로 뒤로 가기를 눌러 풀던 판이 날아가지 않게, 두 번 눌러야 종료 */
+    /** 뒤로 가기: 먼저 퀴즈 화면에 맡김(창 닫기·그만하기·처음 화면으로). 처음 화면이면 두 번 눌러야 종료 */
     @Override
     public void onBackPressed() {
+        web.evaluateJavascript("(window.BQBack&&window.BQBack())?1:0", r -> {
+            if (!"1".equals(r)) exitOnSecondBack();
+        });
+    }
+
+    private void exitOnSecondBack() {
         long now = System.currentTimeMillis();
         if (now - lastBack < 2000) {
-            super.onBackPressed();
+            finish();
         } else {
             lastBack = now;
             Toast.makeText(this, "한 번 더 누르면 종료돼요", Toast.LENGTH_SHORT).show();

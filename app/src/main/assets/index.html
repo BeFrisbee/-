@@ -2443,6 +2443,15 @@ document.addEventListener('pointerdown',e=>{
   ink.addEventListener('animationend',()=>ink.remove());
 },{passive:true});
 
+// 휴대폰 뒤로 가기(앱에서 부름): 창이 열려 있으면 닫고, 풀던 중이면 그만할지 묻고, 다른 화면이면 처음 화면으로.
+// 처음 화면에서는 false를 돌려줘 앱이 '한 번 더 누르면 종료'로 처리
+window.BQBack=()=>{
+  const m=document.getElementById('dexmodal');
+  if(m){ const x=m.querySelector('#xclose,#dexclose'); if(x) x.click(); else m.remove(); return true; }
+  if(app.classList.contains('quiz')){ askQuit(); return true; }
+  if(app.classList.contains('dex')||app.classList.contains('result')){ renderStart(); return true; }
+  return false;
+};
 renderStart();
 if(NEWQ) showNewQ();
 popUpdateOnce();
