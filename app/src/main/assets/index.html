@@ -420,6 +420,8 @@ button,a{-webkit-tap-highlight-color:transparent}
 .upbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gilt-lo),var(--gilt-hi));transition:width .2s}
 .uppct{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
 @media (max-height:700px){.uppill{padding:4px 12px;font-size:14px}}
+.quitbtn{align-self:center;margin-top:6px;border:0;background:none;color:var(--muted);font-size:15px;text-decoration:underline;text-underline-offset:3px;padding:10px 6px}
+.bkpanel .sub{margin:0;color:var(--muted);font-size:15px;line-height:1.55}
 .bkclose{align-self:center;border:0;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;padding:6px}
 .hintbtn.armed{background:var(--hint);color:var(--paper);border-color:var(--hint)}
 .checking .opts .opt:not(.gone){border-style:dashed;border-color:var(--hint)}
@@ -1795,10 +1797,7 @@ window.BQUpdate={
   perm(){ updPanel.draw&&updPanel.draw('perm'); },
   fail(why){ updPanel.draw&&updPanel.draw('fail',why); }
 };
-if(APPVER&&NATIVE.checkUpdate){
-  let at=0; try{at=(JSON.parse(localStorage.getItem('bq-upd')||'null')||{}).at||0;}catch(e){}
-  if(Date.now()-at>3*3600*1000) setTimeout(()=>{try{NATIVE.checkUpdate();}catch(e){}},800);
-}
+if(APPVER&&NATIVE.checkUpdate) setTimeout(()=>{try{NATIVE.checkUpdate();}catch(e){}},800);   // 앱을 켤 때마다 확인
 function showUpdate(){
   if(!UPD) return;
   const old=document.getElementById('dexmodal'); if(old) old.remove();
@@ -1992,10 +1991,54 @@ function tryRound(pool,n){
   for(const f of shuffle(pool)){ if(picked.size>=n) break; if(ok(f)) take(f); }
   return shuffle([...picked]).slice(0,n);
 }
+// 풀던 판 저장: 문제를 낼 때와 답을 낼 때마다 저장해 두고, 판이 끝나면 지움
+const PSTORE='bq-paused-v1';
+const loadPaused=()=>{try{const x=JSON.parse(localStorage.getItem(PSTORE)||'null');return x&&Array.isArray(x.round)&&x.round.length&&Array.isArray(x.answers)&&x.answers.length<=x.round.length?x:null;}catch(e){return null;}};
+const savePaused=()=>{try{localStorage.setItem(PSTORE,JSON.stringify({range,round,answers,newSeen,fixedWrong,at:Date.now()}));}catch(e){}};
+const clearPaused=()=>{try{localStorage.removeItem(PSTORE);}catch(e){}};
+function resumeRound(x){
+  range=x.range; round=x.round; answers=x.answers; idx=answers.length;
+  newSeen=x.newSeen||0; fixedWrong=x.fixedWrong||0;
+  if(idx>=round.length) renderResult(); else renderQuestion();
+}
+function askResume(x){
+  const old=document.getElementById('dexmodal'); if(old) old.remove();
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal';
+  m.innerHTML=`<div class="dexpanel bkpanel" role="dialog" aria-modal="true" aria-label="풀던 판">
+    <h3>풀던 판이 있어요</h3>
+    <div class="bkbox"><b>${esc(rangeName(x.range))}</b><span>${x.round.length}문제 중 ${x.answers.length}문제를 풀었어요</span></div>
+    <div class="upbtns"><button class="primary" id="psgo">이어서 풀기</button><button class="secondary" id="psnew">처음부터 새로 하기</button></div>
+    <button class="bkclose" id="dexclose">닫기</button></div>`;
+  const close=()=>m.remove();
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
+  m.querySelector('#dexclose').addEventListener('click',close);
+  m.querySelector('#psgo').addEventListener('click',()=>{ close(); resumeRound(x); });
+  m.querySelector('#psnew').addEventListener('click',()=>{ close(); clearPaused(); newRound(); });
+  document.body.appendChild(m);
+}
+function askQuit(){
+  const old=document.getElementById('dexmodal'); if(old) old.remove();
+  const done=answers.length;
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal';
+  m.innerHTML=`<div class="dexpanel bkpanel" role="dialog" aria-modal="true" aria-label="그만하기">
+    <h3>여기서 그만할까요?</h3>
+    <p class="sub">${done?`지금까지 푼 ${done}문제는 도감에 그대로 남아요. `:''}다음에 시작하기를 누르면 이어서 풀 수 있어요.</p>
+    <div class="upbtns"><button class="primary" id="qtgo">그만하고 처음 화면으로</button><button class="secondary" id="dexclose">계속 풀기</button></div></div>`;
+  const close=()=>m.remove();
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
+  m.querySelector('#dexclose').addEventListener('click',close);
+  m.querySelector('#qtgo').addEventListener('click',()=>{ close(); savePaused(); renderStart(); });
+  document.body.appendChild(m);
+}
 function startRound(){
+  const x=loadPaused();
+  if(x) return askResume(x);
+  newRound();
+}
+function newRound(){
   if(range==='wrong'){
     const pool=wrongPool();
-    if(!pool.length){ range='all'; return startRound(); }
+    if(!pool.length){ range='all'; return newRound(); }
     round=shuffle(pool).slice(0,ROUND).map(build);
   }else round=pickRound(RANGES[range].pool,ROUND).map(build);
   newSeen=0; fixedWrong=0;
@@ -2106,7 +2149,8 @@ function renderQuestion(){
     </div>
     ${body}
     <button class="primary" id="submit" disabled>제출하기</button>
-    <div id="fb"></div>`;
+    <div id="fb"></div>
+    <button class="quitbtn" id="quit">그만하고 처음 화면으로</button>`;
   it.hintUsed=false; it.gone=[]; it.lockSel=null; it.lockL=null; it.checking=false; it.okOpt=null;
   const hb=document.getElementById('hintBtn');
   hb.addEventListener('click',()=>{
@@ -2131,6 +2175,8 @@ function renderQuestion(){
     const k=+b.dataset.k; if(k<sel.length&&sel[k]!==it.lockSel){ sel.splice(k,1); paint(); }
   }));
   document.getElementById('submit').addEventListener('click',submit);
+  document.getElementById('quit').addEventListener('click',askQuit);
+  savePaused();
   paint();
   top();
   if(it.type==="match"){ requestAnimationFrame(drawLines); try{document.fonts.ready.then(drawLines);}catch(e){} }
@@ -2223,6 +2269,7 @@ function submit(){
   const right=grade(it,s);
   answers.push({pick:s,right,hint:it.hintUsed});
   record(it.id,right,it.hintUsed);
+  savePaused();
   document.getElementById('hintBtn').hidden=true;
   const rb=document.getElementById('resetBtn'); if(rb) rb.hidden=true;
   document.getElementById('submit').hidden=true;
@@ -2294,6 +2341,7 @@ function submit(){
 
 function renderResult(){
   const SCREEN='result';
+  clearPaused();
   const score=answers.filter(a=>a.right).length;
   const hints=answers.filter(a=>a.hint).length;
   const isWrong=range==='wrong';
