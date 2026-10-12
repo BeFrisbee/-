@@ -408,6 +408,18 @@ button,a{-webkit-tap-highlight-color:transparent}
 .rplist button{text-align:left;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:17px;color:var(--fg)}
 .bkbtns .bkwide{grid-column:1/-1;display:flex;justify-content:center;gap:8px;align-items:center}
 .bkwide .cnt{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--bad-bg);color:var(--bad);font-size:14px}
+.uppill{display:inline-flex;align-items:center;gap:7px;margin:0;padding:7px 14px;border-radius:999px;border:1.2px solid var(--gilt);background:linear-gradient(180deg,var(--gilt-hi),var(--gilt));color:#1d2233;font-size:15px;font-weight:700;line-height:1.3;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.uppill i{width:7px;height:7px;border-radius:50%;background:#b3261e;display:inline-block}
+.uppanel .ver{margin:0;font-size:15px;color:var(--muted)}
+.uppanel .notes{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.6}
+.uppanel .notes b{display:block;font-size:14px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.uppanel .tip{margin:0;font-size:14.5px;color:var(--muted);line-height:1.55}
+.upbtns{display:grid;gap:8px}
+.dexpanel.still{animation:none}
+.upbar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.upbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gilt-lo),var(--gilt-hi));transition:width .2s}
+.uppct{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-height:700px){.uppill{padding:4px 12px;font-size:14px}}
 .bkclose{align-self:center;border:0;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;padding:6px}
 .hintbtn.armed{background:var(--hint);color:var(--paper);border-color:var(--hint)}
 .checking .opts .opt:not(.gone){border-style:dashed;border-color:var(--hint)}
@@ -1672,7 +1684,7 @@ function renderStart(){
   const mini=DEX.map(f=>{const c=dexCls(STATS[f.id]);return c?`<i class="${c}"></i>`:'<i></i>';}).join('');
   app.className='wrap '+SCREEN;
   app.innerHTML=`
-    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1><p>개역개정 성경으로 푸는 서른 문제</p><div class="orn" aria-hidden="true"></div></header>
+    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1>${UPD?'<button class="uppill" id="upd"><i aria-hidden="true"></i>새 버전이 나왔어요 · 업데이트</button>':'<p>개역개정 성경으로 푸는 서른 문제</p>'}<div class="orn" aria-hidden="true"></div></header>
     <section class="sheet">
       <div class="label">범위를 고르세요</div>
       <div class="ranges">${items}</div>
@@ -1689,6 +1701,7 @@ function renderStart(){
   document.getElementById('go').addEventListener('click',startRound);
   document.getElementById('dex').addEventListener('click',renderDex);
   document.getElementById('bk').addEventListener('click',showBackup);
+  const ub=document.getElementById('upd'); if(ub) ub.addEventListener('click',showUpdate);
   top();
 }
 
@@ -1768,6 +1781,58 @@ function sendReports(after){
   if(NATIVE&&NATIVE.shareText){ try{ NATIVE.shareText(text); clear(); return; }catch(e){} }
   if(navigator.share){ navigator.share({text,title:'성경 퀴즈 신고'}).then(()=>clear()).catch(()=>{}); return; }
   try{ navigator.clipboard.writeText(text).then(()=>clear('신고 내용을 복사했어요. 카톡에 붙여 넣어 보내 주세요.')); }catch(e){}
+}
+// 앱 안 업데이트 (APK에서만): 새 버전이 있으면 표지에 알림을 띄우고, 누르면 받아서 설치 화면을 연다
+const APPVER=(()=>{try{return NATIVE&&NATIVE.appVersion?JSON.parse(NATIVE.appVersion()):null;}catch(e){return null;}})();
+let UPD=null;
+try{const c=JSON.parse(localStorage.getItem('bq-upd')||'null'); if(c&&c.info&&APPVER&&c.info.code>APPVER.code) UPD=c.info;}catch(e){}
+const updPanel={el:null,draw:null};
+window.BQUpdate={
+  info(x){ UPD=x; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:x}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
+  none(){ UPD=null; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:null}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
+  progress(p){ updPanel.draw&&updPanel.draw('down',p); },
+  done(){ updPanel.draw&&updPanel.draw('install'); },
+  perm(){ updPanel.draw&&updPanel.draw('perm'); },
+  fail(why){ updPanel.draw&&updPanel.draw('fail',why); }
+};
+if(APPVER&&NATIVE.checkUpdate){
+  let at=0; try{at=(JSON.parse(localStorage.getItem('bq-upd')||'null')||{}).at||0;}catch(e){}
+  if(Date.now()-at>3*3600*1000) setTimeout(()=>{try{NATIVE.checkUpdate();}catch(e){}},800);
+}
+function showUpdate(){
+  if(!UPD) return;
+  const old=document.getElementById('dexmodal'); if(old) old.remove();
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal';
+  const close=()=>{ m.remove(); updPanel.draw=null; };
+  const mb=n=>n?` (${(n/1048576).toFixed(1)}MB)`:'';
+  updPanel.draw=(state,arg)=>{
+    if(state==='down'&&m.querySelector('.upbar')){ const p=Math.max(0,Math.min(100,+arg||0)); m.querySelector('.upbar i').style.width=p+'%'; m.querySelector('.uppct span:last-child').textContent=p+'%'; return; }
+    let body='';
+    if(state==='ask'||state==='fail'){
+      const why=state==='fail'?{bad:'받은 파일이 맞지 않아요. 잠시 뒤 다시 눌러 주세요.',perm:'설치 허용이 꺼져 있어요. 다시 눌러서 \'이 출처 허용\'을 켜 주세요.',install:'설치 화면을 열지 못했어요.'}[arg]||'받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.':'';
+      body=`${why?`<p class="bkmsg bad" role="status">${why}</p>`:''}
+        ${NATIVE.canInstall&&!NATIVE.canInstall()?`<p class="tip">처음 한 번은 '이 출처 허용'을 켜 달라는 화면이 나와요. 켜고 뒤로 오시면 설치가 이어져요.</p>`:''}
+        <div class="upbtns"><button class="primary" id="upgo">${state==='fail'?'다시 받기':'지금 업데이트'}${mb(UPD.size)}</button><button class="bkclose" id="dexclose">나중에</button></div>`;
+    }else if(state==='down'){
+      const p=Math.max(0,Math.min(100,+arg||0));
+      body=`<div class="upbar"><i style="width:${p}%"></i></div><div class="uppct"><span>새 버전 받는 중</span><span>${p}%</span></div>
+        <p class="tip">다 받으면 설치 화면이 바로 떠요. '업데이트'를 누르시면 돼요.</p>`;
+    }else if(state==='perm'){
+      body=`<p class="tip">설정 화면에서 '이 출처 허용'을 켜고 뒤로 돌아와 주세요. 설치가 이어져요.</p>`;
+    }else if(state==='install'){
+      body=`<p class="tip">설치 화면에서 '업데이트'를 눌러 주세요. 기록은 그대로 남아요.</p><button class="bkclose" id="dexclose">닫기</button>`;
+    }
+    const still=!!m.querySelector('.uppanel');
+    m.innerHTML=`<div class="dexpanel bkpanel uppanel${still?' still':''}" role="dialog" aria-modal="true" aria-label="업데이트">
+      <h3>새 버전이 나왔어요</h3>
+      <p class="ver">지금 ${esc(APPVER.name)} → 새 버전 ${esc(UPD.name)}</p>
+      ${UPD.notes?`<div class="notes"><b>바뀐 점</b>${esc(UPD.notes)}</div>`:''}
+      ${body}</div>`;
+    const c=m.querySelector('#dexclose'); if(c) c.addEventListener('click',close);
+    const g=m.querySelector('#upgo'); if(g) g.addEventListener('click',()=>{ updPanel.draw('down',0); try{NATIVE.downloadUpdate(UPD.url,UPD.code);}catch(e){updPanel.draw('fail');} });
+  };
+  m.addEventListener('click',e=>{ if(e.target===m&&!m.querySelector('.upbar')) close(); });
+  updPanel.draw('ask'); document.body.appendChild(m);
 }
 function exportRecord(){
   const json=JSON.stringify(snapshot());

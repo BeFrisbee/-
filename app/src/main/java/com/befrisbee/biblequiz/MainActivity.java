@@ -24,7 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/** 퀴즈 HTML을 앱 안에서 그대로 띄우는 화면. 인터넷 없이 동작하고, 성경 본문 링크만 휴대폰 브라우저로 연다. */
+/** 퀴즈 HTML을 앱 안에서 그대로 띄우는 화면. 퀴즈는 인터넷 없이 동작하고, 성경 본문 링크는 휴대폰 브라우저로 연다.
+ *  인터넷은 새 버전 확인과 받기에만 쓴다. */
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START = "https://" + HOST + "/assets/index.html";
@@ -35,6 +36,7 @@ public class MainActivity extends Activity {
     private long lastBack = 0;
     private ValueCallback<Uri[]> pickCallback;
     private AtomicFile record;
+    private Updater updater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +100,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        updater = new Updater(this, web);
         web.addJavascriptInterface(new Bridge(), "BQNative");
 
         if (savedInstanceState != null) {
@@ -156,6 +159,26 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String appVersion() {
+            return "{\"code\":" + updater.currentCode() + ",\"name\":\"" + updater.currentName() + "\"}";
+        }
+
+        @JavascriptInterface
+        public boolean canInstall() {
+            return updater.canInstall();
+        }
+
+        @JavascriptInterface
+        public void checkUpdate() {
+            updater.check();
+        }
+
+        @JavascriptInterface
+        public void downloadUpdate(String url, long code) {
+            if (url != null && url.startsWith("https://github.com/BeFrisbee/-/releases/download/")) updater.download(url, code);
+        }
+
+        @JavascriptInterface
         public void shareText(String text) {
             Intent send = new Intent(Intent.ACTION_SEND);
             send.setType("text/plain");
@@ -175,6 +198,12 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (updater != null) updater.onResume();
     }
 
     @Override

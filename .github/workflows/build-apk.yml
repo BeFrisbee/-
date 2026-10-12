@@ -39,11 +39,17 @@ jobs:
           name: bible-quiz-apk
           path: out/*.apk
 
+      - name: 바뀐 점 (커밋 첫 줄)
+        run: echo "NOTES=$(git log -1 --pretty=%s)" >> "$GITHUB_ENV"
+
       - name: 릴리스에 APK 올리기
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: 성경 퀴즈 1.0.${{ github.run_number }}
-          body: 휴대폰에서 아래 Assets의 apk 파일을 눌러 받아 설치하세요.
+          body: |
+            ${{ env.NOTES }}
+
+            휴대폰에서 아래 Assets의 apk 파일을 눌러 받아 설치하세요.
           files: out/*.apk
           make_latest: true
