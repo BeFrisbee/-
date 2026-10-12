@@ -39,17 +39,21 @@ jobs:
           name: bible-quiz-apk
           path: out/*.apk
 
-      - name: 바뀐 점 (커밋 첫 줄)
-        run: echo "NOTES=$(git log -1 --pretty=%s)" >> "$GITHUB_ENV"
+      - name: 업데이트 정보 만들기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo "${{ github.repository }}" --pattern quiz-meta.json --dir prev || echo "이전 정보 없음"
+          python3 .github/make-meta.py ${{ github.run_number }}
 
-      - name: 릴리스에 APK 올리기
+      - name: 릴리스에 APK·퀴즈 파일 올리기
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: 성경 퀴즈 1.0.${{ github.run_number }}
-          body: |
-            ${{ env.NOTES }}
-
-            휴대폰에서 아래 Assets의 apk 파일을 눌러 받아 설치하세요.
-          files: out/*.apk
+          body_path: out/notes.txt
+          files: |
+            out/*.apk
+            out/quiz.html
+            out/quiz-meta.json
           make_latest: true

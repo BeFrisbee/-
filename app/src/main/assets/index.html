@@ -415,6 +415,13 @@ button,a{-webkit-tap-highlight-color:transparent}
 .uppanel .notes b{display:block;font-size:14px;color:var(--muted);font-weight:600;margin-bottom:2px}
 .uppanel .tip{margin:0;font-size:14.5px;color:var(--muted);line-height:1.55}
 .upbtns{display:grid;gap:8px}
+.dexmodal.center{align-items:center}
+.dexpanel{position:relative}
+.xbtn{position:absolute;top:10px;right:10px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:999px;background:transparent;color:var(--muted)}
+.xbtn:active{background:var(--line)}
+.dexpanel h3{padding-right:36px}
+.uppanel .apknote{display:block;margin-top:6px;font-size:14.5px;color:var(--bad);line-height:1.5}
+.cover p.newq{color:var(--gilt-hi);font-family:var(--f-body);font-weight:600;opacity:1}
 .dexpanel.still{animation:none}
 .upbar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
 .upbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gilt-lo),var(--gilt-hi));transition:width .2s}
@@ -1668,6 +1675,9 @@ const countOf=pool=>pool.reduce((n,f)=>n+(f.type==="choice"?2:1),0);
 
 function top(){window.scrollTo({top:0,behavior:'auto'});}
 
+// 문제가 늘었으면(문제 업데이트) 시작 화면에 한 번 알려 줌
+let NEWQ=0;
+try{const k=+localStorage.getItem('bq-count')||0, n=ALL.length; if(k&&n>k) NEWQ=n-k; localStorage.setItem('bq-count',String(n));}catch(e){}
 function renderStart(){
   const SCREEN='start';
   const wn=wrongPool().length;
@@ -1686,7 +1696,7 @@ function renderStart(){
   const mini=DEX.map(f=>{const c=dexCls(STATS[f.id]);return c?`<i class="${c}"></i>`:'<i></i>';}).join('');
   app.className='wrap '+SCREEN;
   app.innerHTML=`
-    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1>${UPD?'<button class="uppill" id="upd"><i aria-hidden="true"></i>새 버전이 나왔어요 · 업데이트</button>':'<p>개역개정 성경으로 푸는 서른 문제</p>'}<div class="orn" aria-hidden="true"></div></header>
+    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1>${!UPD&&NEWQ?`<p class="newq">새 문제 ${NEWQ}개가 들어왔어요</p>`:UPD?'<button class="uppill" id="upd"><i aria-hidden="true"></i>새 버전이 나왔어요 · 업데이트</button>':'<p>개역개정 성경으로 푸는 서른 문제</p>'}<div class="orn" aria-hidden="true"></div></header>
     <section class="sheet">
       <div class="label">범위를 고르세요</div>
       <div class="ranges">${items}</div>
@@ -1700,7 +1710,7 @@ function renderStart(){
     range=b.dataset.k; try{localStorage.setItem('bq-range',range);}catch(e){}
     app.querySelectorAll('.range').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
   }));
-  document.getElementById('go').addEventListener('click',startRound);
+  document.getElementById('go').addEventListener('click',()=>{ NEWQ=0; startRound(); });
   document.getElementById('dex').addEventListener('click',renderDex);
   document.getElementById('bk').addEventListener('click',showBackup);
   const ub=document.getElementById('upd'); if(ub) ub.addEventListener('click',showUpdate);
@@ -1787,10 +1797,10 @@ function sendReports(after){
 // 앱 안 업데이트 (APK에서만): 새 버전이 있으면 표지에 알림을 띄우고, 누르면 받아서 설치 화면을 연다
 const APPVER=(()=>{try{return NATIVE&&NATIVE.appVersion?JSON.parse(NATIVE.appVersion()):null;}catch(e){return null;}})();
 let UPD=null;
-try{const c=JSON.parse(localStorage.getItem('bq-upd')||'null'); if(c&&c.info&&APPVER&&c.info.code>APPVER.code) UPD=c.info;}catch(e){}
+try{const c=JSON.parse(localStorage.getItem('bq-upd')||'null'); if(c&&c.info&&APPVER&&c.info.code>(APPVER.content||APPVER.code)) UPD=c.info;}catch(e){}
 const updPanel={el:null,draw:null};
 window.BQUpdate={
-  info(x){ UPD=x; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:x}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
+  info(x){ UPD=x; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:x}));}catch(e){} if(app.classList.contains('start')){ renderStart(); popUpdateOnce(); } },
   none(){ UPD=null; try{localStorage.setItem('bq-upd',JSON.stringify({at:Date.now(),info:null}));}catch(e){} if(app.classList.contains('start')) renderStart(); },
   progress(p){ updPanel.draw&&updPanel.draw('down',p); },
   done(){ updPanel.draw&&updPanel.draw('install'); },
@@ -1798,37 +1808,70 @@ window.BQUpdate={
   fail(why){ updPanel.draw&&updPanel.draw('fail',why); }
 };
 if(APPVER&&NATIVE.checkUpdate) setTimeout(()=>{try{NATIVE.checkUpdate();}catch(e){}},800);   // 앱을 켤 때마다 확인
-function showUpdate(){
+const XBTN='<button class="xbtn" id="xclose" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+// 처음 켰을 때 화면 가운데 알림: 새 문제가 들어왔을 때, 새 버전이 나왔을 때 (버전마다 한 번)
+function whenFree(fn){
+  let n=0; const t=setInterval(()=>{ n++;
+    if(!app.classList.contains('start')||n>240){ clearInterval(t); return; }
+    if(!document.getElementById('dexmodal')){ clearInterval(t); fn(); } },500);
+}
+function popUpdateOnce(){
+  if(!UPD) return;
+  let shown=''; try{shown=localStorage.getItem('bq-upd-pop')||'';}catch(e){}
+  if(shown===String(UPD.code)) return;
+  whenFree(()=>{ if(!UPD) return; try{localStorage.setItem('bq-upd-pop',String(UPD.code));}catch(e){} showUpdate(true); });
+}
+function showNewQ(){
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal center';
+  let notes=''; try{notes=NATIVE&&NATIVE.contentNotes?NATIVE.contentNotes():'';}catch(e){}
+  m.innerHTML=`<div class="dexpanel bkpanel" role="dialog" aria-modal="true" aria-label="새 문제 알림">${XBTN}
+    <h3>새 문제가 들어왔어요</h3>
+    <p class="sub">새 문제 ${NEWQ}개가 추가됐어요. 도감에 빈 칸으로 생겼으니 풀어서 채워 보세요.</p>
+    ${notes?`<div class="bkbox"><b>바뀐 점</b><span>${esc(notes)}</span></div>`:''}
+    <button class="primary" id="dexclose">확인</button></div>`;
+  const close=()=>m.remove();
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
+  m.querySelector('#dexclose').addEventListener('click',close);
+  m.querySelector('#xclose').addEventListener('click',close);
+  document.body.appendChild(m);
+}
+function showUpdate(center){
   if(!UPD) return;
   const old=document.getElementById('dexmodal'); if(old) old.remove();
-  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal';
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal'+(center?' center':'');
   const close=()=>{ m.remove(); updPanel.draw=null; };
   const mb=n=>n?` (${(n/1048576).toFixed(1)}MB)`:'';
+  const isApk=UPD.kind!=='feature';
   updPanel.draw=(state,arg)=>{
     if(state==='down'&&m.querySelector('.upbar')){ const p=Math.max(0,Math.min(100,+arg||0)); m.querySelector('.upbar i').style.width=p+'%'; m.querySelector('.uppct span:last-child').textContent=p+'%'; return; }
     let body='';
     if(state==='ask'||state==='fail'){
-      const why=state==='fail'?{bad:'받은 파일이 맞지 않아요. 잠시 뒤 다시 눌러 주세요.',perm:'설치 허용이 꺼져 있어요. 다시 눌러서 \'이 출처 허용\'을 켜 주세요.',install:'설치 화면을 열지 못했어요.'}[arg]||'받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.':'';
+      const why=state==='fail'?{bad:'받은 파일이 맞지 않아요. 잠시 뒤 다시 눌러 주세요.',perm:'설치 허용이 꺼져 있어요. 다시 눌러서 \'이 출처 허용\'을 켜 주세요.',install:'설치 화면을 열지 못했어요.',apply:'새 버전 파일이 아직 준비되지 않았어요. 앱을 다시 켠 뒤 눌러 주세요.'}[arg]||'받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.':'';
       body=`${why?`<p class="bkmsg bad" role="status">${why}</p>`:''}
-        ${NATIVE.canInstall&&!NATIVE.canInstall()?`<p class="tip">처음 한 번은 '이 출처 허용'을 켜 달라는 화면이 나와요. 켜고 뒤로 오시면 설치가 이어져요.</p>`:''}
-        <div class="upbtns"><button class="primary" id="upgo">${state==='fail'?'다시 받기':'지금 업데이트'}${mb(UPD.size)}</button><button class="bkclose" id="dexclose">나중에</button></div>`;
+        ${isApk&&NATIVE.canInstall&&!NATIVE.canInstall()?`<p class="tip">처음 한 번은 '이 출처 허용'을 켜 달라는 화면이 나와요. 켜고 뒤로 오시면 설치가 이어져요.</p>`:''}
+        <div class="upbtns"><button class="primary" id="upgo">${state==='fail'?'다시 받기':'지금 업데이트'}${isApk?mb(UPD.size):''}</button><button class="bkclose" id="dexclose">나중에</button></div>`;
     }else if(state==='down'){
       const p=Math.max(0,Math.min(100,+arg||0));
       body=`<div class="upbar"><i style="width:${p}%"></i></div><div class="uppct"><span>새 버전 받는 중</span><span>${p}%</span></div>
         <p class="tip">다 받으면 설치 화면이 바로 떠요. '업데이트'를 누르시면 돼요.</p>`;
     }else if(state==='perm'){
       body=`<p class="tip">설정 화면에서 '이 출처 허용'을 켜고 뒤로 돌아와 주세요. 설치가 이어져요.</p>`;
+    }else if(state==='apply'){
+      body=`<p class="tip">새 버전으로 바꾸고 있어요…</p>`;
     }else if(state==='install'){
       body=`<p class="tip">설치 화면에서 '업데이트'를 눌러 주세요. 기록은 그대로 남아요.</p><button class="bkclose" id="dexclose">닫기</button>`;
     }
     const still=!!m.querySelector('.uppanel');
-    m.innerHTML=`<div class="dexpanel bkpanel uppanel${still?' still':''}" role="dialog" aria-modal="true" aria-label="업데이트">
+    m.innerHTML=`<div class="dexpanel bkpanel uppanel${still?' still':''}" role="dialog" aria-modal="true" aria-label="업데이트">${XBTN}
       <h3>새 버전이 나왔어요</h3>
-      <p class="ver">지금 ${esc(APPVER.name)} → 새 버전 ${esc(UPD.name)}</p>
-      ${UPD.notes?`<div class="notes"><b>바뀐 점</b>${esc(UPD.notes)}</div>`:''}
+      <p class="ver">지금 ${esc(APPVER.contentName||APPVER.name)} → 새 버전 ${esc(UPD.name)}</p>
+      <div class="notes"><b>바뀐 점</b>${esc(UPD.notes||'')}${isApk?`<span class="apknote">이번에는 앱을 새로 설치하는 업데이트예요. 설치 확인 화면이 한 번 떠요.</span>`:''}</div>
       ${body}</div>`;
     const c=m.querySelector('#dexclose'); if(c) c.addEventListener('click',close);
-    const g=m.querySelector('#upgo'); if(g) g.addEventListener('click',()=>{ updPanel.draw('down',0); try{NATIVE.downloadUpdate(UPD.url,UPD.code);}catch(e){updPanel.draw('fail');} });
+    m.querySelector('#xclose').addEventListener('click',close);
+    const g=m.querySelector('#upgo'); if(g) g.addEventListener('click',()=>{
+      if(!isApk){ let ok=false; try{ok=NATIVE.applyContent();}catch(e){} if(!ok) updPanel.draw('fail','apply'); else updPanel.draw('apply'); return; }
+      updPanel.draw('down',0); try{NATIVE.downloadUpdate(UPD.url,UPD.code);}catch(e){updPanel.draw('fail');} });
   };
   m.addEventListener('click',e=>{ if(e.target===m&&!m.querySelector('.upbar')) close(); });
   updPanel.draw('ask'); document.body.appendChild(m);
@@ -2401,6 +2444,8 @@ document.addEventListener('pointerdown',e=>{
 },{passive:true});
 
 renderStart();
+if(NEWQ) showNewQ();
+popUpdateOnce();
 })();
 </script>
 </body>

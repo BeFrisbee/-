@@ -20,6 +20,7 @@ import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,9 +50,22 @@ public class MainActivity extends Activity {
         web.setBackgroundColor(getResources().getColor(R.color.paper, getTheme()));
         setContentView(web);
 
+        // 받아 둔 퀴즈 파일이 앱에 든 것보다 새것이면 그것을 띄움 (문제·기능 업데이트)
+        Updater.prepare(this);
+        final WebViewAssetLoader.AssetsPathHandler assets = new WebViewAssetLoader.AssetsPathHandler(this);
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .setDomain(HOST)
-                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .addPathHandler("/assets/", path -> {
+                    if ("index.html".equals(path)) {
+                        File f = Updater.currentFile(MainActivity.this);
+                        if (f != null) {
+                            try {
+                                return new WebResourceResponse("text/html", "utf-8", new FileInputStream(f));
+                            } catch (IOException ignored) { }
+                        }
+                    }
+                    return assets.handle(path);
+                })
                 .build();
 
         WebSettings s = web.getSettings();
@@ -160,12 +174,25 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String appVersion() {
-            return "{\"code\":" + updater.currentCode() + ",\"name\":\"" + updater.currentName() + "\"}";
+            long content = Updater.contentVersion(MainActivity.this);
+            return "{\"code\":" + updater.currentCode() + ",\"name\":\"" + updater.currentName()
+                    + "\",\"content\":" + content + ",\"contentName\":\"1.0." + content
+                    + "\",\"native\":" + Updater.nativeLevel(MainActivity.this) + "}";
         }
 
         @JavascriptInterface
         public boolean canInstall() {
             return updater.canInstall();
+        }
+
+        @JavascriptInterface
+        public String contentNotes() {
+            return Updater.contentNotes(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public boolean applyContent() {
+            return updater.applyContent();
         }
 
         @JavascriptInterface

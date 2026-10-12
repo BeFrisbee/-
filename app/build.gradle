@@ -16,6 +16,12 @@ android {
         targetSdk 34
         versionCode vc
         versionName "1.0.${vc}"
+        // 앱(APK) 쪽 기능 단계. 올리면 '앱을 새로 설치하는 업데이트'가 됨
+        resValue "integer", "native_level", file('native-level').text.trim()
+    }
+
+    buildFeatures {
+        resValues true
     }
 
     signingConfigs {
