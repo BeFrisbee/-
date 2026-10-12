@@ -1654,7 +1654,7 @@ function renderStart(){
   const mini=DEX.map(f=>{const c=dexCls(STATS[f.id]);return c?`<i class="${c}"></i>`:'<i></i>';}).join('');
   app.className='wrap '+SCREEN;
   app.innerHTML=`
-    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a5 5 0 0 1-.5-9.97A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/><path d="M9.5 13.5l2 2 3.5-4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1><p>개역개정 성경으로 푸는 서른 문제</p><div class="orn" aria-hidden="true"></div></header>
+    <header class="cover leather"><button class="bkpill" id="bk" aria-label="기록 보관 열기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 4h18v3H3z"/><path d="M10 11h4"/></svg>기록 보관</button><div class="orn" aria-hidden="true"></div><h1 class="gilt-text">성경 퀴즈</h1><p>개역개정 성경으로 푸는 서른 문제</p><div class="orn" aria-hidden="true"></div></header>
     <section class="sheet">
       <div class="label">범위를 고르세요</div>
       <div class="ranges">${items}</div>
@@ -1674,14 +1674,6 @@ function renderStart(){
   top();
 }
 
-function whenText(t){
-  if(!t) return '';
-  const d=new Date(t), n=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
-  const hm=`${h<12?'오전':'오후'} ${h%12||12}:${m}`;
-  const same=d.toDateString()===n.toDateString();
-  const y=new Date(n); y.setDate(n.getDate()-1);
-  return (same?'오늘':d.toDateString()===y.toDateString()?'어제':`${d.getMonth()+1}월 ${d.getDate()}일`)+' '+hm;
-}
 function showBackup(){
   const old=document.getElementById('dexmodal'); if(old) old.remove();
   const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal bkmodal';
@@ -1689,8 +1681,6 @@ function showBackup(){
     const seen=seenCount();
     m.innerHTML=`<div class="dexpanel bkpanel" role="dialog" aria-modal="true" aria-label="기록 보관">
       <h3>기록 보관</h3>
-      ${NATIVE?`<div class="bkbox"><b>구글 자동 백업</b><span class="okt">연결됨</span></div>`:''}
-      <div class="bkbox"><b>${NATIVE?'이 폰':'이 기기'}에 저장된 기록</b><span>${seen?`푼 문제 ${seen}개${savedAt?` · 마지막 저장 ${whenText(savedAt)}`:''}`:'아직 푼 문제가 없어요'}</span></div>
       <div class="bkbtns"><button id="bkout"${seen?'':' disabled'}>기록 내보내기</button><button id="bkin">기록 불러오기</button></div>
       ${msg?`<p class="bkmsg${bad?' bad':''}" role="status">${msg}</p>`:''}
       <input type="file" id="bkfile" accept="application/json,.json,text/plain" hidden>
