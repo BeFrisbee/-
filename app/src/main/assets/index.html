@@ -399,6 +399,15 @@ button,a{-webkit-tap-highlight-color:transparent}
 .bkbtns button:disabled{opacity:.45}
 .bkpanel .bkmsg{margin:0;font-size:15px;color:var(--ok);font-weight:600}
 .bkpanel .bkmsg.bad{color:var(--bad)}
+.fbfoot{display:flex;justify-content:space-between;align-items:center;gap:4px 10px;margin-top:2px;flex-wrap:wrap}
+.rpbtn{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:var(--muted);font-size:14.5px;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
+.rpdone{display:inline-flex;align-items:center;gap:6px;font-size:14.5px;color:var(--bad);font-weight:600}
+.rpdone button{border:0;background:none;color:var(--muted);font-weight:400;text-decoration:underline;text-underline-offset:3px;font-size:14px;padding:6px 2px}
+.rppanel .sub{margin:0;color:var(--muted);font-size:14.5px}
+.rplist{display:grid;gap:8px}
+.rplist button{text-align:left;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:17px;color:var(--fg)}
+.bkbtns .bkwide{grid-column:1/-1;display:flex;justify-content:center;gap:8px;align-items:center}
+.bkwide .cnt{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--bad-bg);color:var(--bad);font-size:14px}
 .bkclose{align-self:center;border:0;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;padding:6px}
 .hintbtn.armed{background:var(--hint);color:var(--paper);border-color:var(--hint)}
 .checking .opts .opt:not(.gone){border-style:dashed;border-color:var(--hint)}
@@ -1551,7 +1560,11 @@ let STATS={}; try{STATS=JSON.parse(localStorage.getItem(STORE)||'{}')||{};}catch
 const NATIVE=(()=>{try{return window.BQNative||null;}catch(e){return null;}})();
 const BEST_RE=/^bq-best\d+-/;
 function bestScores(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(BEST_RE.test(k))o[k]=localStorage.getItem(k);}}catch(e){}return o;}
-const snapshot=()=>({app:'bible-quiz',v:1,at:Date.now(),stats:STATS,best:bestScores()});
+// 신고: {id:{r:이유, q:문제, p:고른 답, ref, at}} — 보내면 sent로 옮겨 목록에서 비움
+const RSTORE='bq-reports-v1';
+let REPORTS={open:{},sent:{}}; try{const x=JSON.parse(localStorage.getItem(RSTORE)||'null'); if(x&&x.open) REPORTS={open:x.open||{},sent:x.sent||{}};}catch(e){}
+const saveReports=()=>{try{localStorage.setItem(RSTORE,JSON.stringify(REPORTS));}catch(e){} mirror();};
+const snapshot=()=>({app:'bible-quiz',v:1,at:Date.now(),stats:STATS,best:bestScores(),reports:REPORTS});
 let savedAt=0; try{savedAt=+localStorage.getItem('bq-saved-at')||0;}catch(e){}
 function mirror(){
   savedAt=Date.now(); try{localStorage.setItem('bq-saved-at',String(savedAt));}catch(e){}
@@ -1573,6 +1586,11 @@ function mergeIn(data){
     st.r=Math.max(st.r,xr); st.w=Math.max(st.w,xw); st.b=RANKV[xb]>RANKV[sb]?xb:sb;
     if(JSON.stringify(st)!==before) changed++;
   }
+  if(data.reports&&typeof data.reports==='object') for(const box of ['open','sent']){
+    const src=data.reports[box]; if(!src||typeof src!=='object') continue;
+    for(const id in src){ if(!REPORTS.open[id]&&!REPORTS.sent[id]&&src[id]&&typeof src[id]==='object'){ REPORTS[box][id]=src[id]; changed++; } }
+  }
+  if(data.reports) try{localStorage.setItem(RSTORE,JSON.stringify(REPORTS));}catch(e){}
   if(data.best&&typeof data.best==='object') for(const k in data.best){
     if(!BEST_RE.test(k)) continue; const v=parseInt(data.best[k],10); if(isNaN(v)) continue;
     try{const cur=parseInt(localStorage.getItem(k)||'',10); if(isNaN(cur)||v>cur){localStorage.setItem(k,String(v));changed++;}}catch(e){}
@@ -1681,12 +1699,13 @@ function showBackup(){
     const seen=seenCount();
     m.innerHTML=`<div class="dexpanel bkpanel" role="dialog" aria-modal="true" aria-label="기록 보관">
       <h3>기록 보관</h3>
-      <div class="bkbtns"><button id="bkout"${seen?'':' disabled'}>기록 내보내기</button><button id="bkin">기록 불러오기</button></div>
+      <div class="bkbtns"><button id="bkout"${seen?'':' disabled'}>기록 내보내기</button><button id="bkin">기록 불러오기</button>${Object.keys(REPORTS.open).length?`<button class="bkwide" id="rpsend">신고한 문제 보내기 <span class="cnt">${Object.keys(REPORTS.open).length}</span></button>`:''}</div>
       ${msg?`<p class="bkmsg${bad?' bad':''}" role="status">${msg}</p>`:''}
       <input type="file" id="bkfile" accept="application/json,.json,text/plain" hidden>
       <button class="bkclose" id="dexclose">닫기</button></div>`;
     m.querySelector('#dexclose').addEventListener('click',close);
     m.querySelector('#bkout').addEventListener('click',exportRecord);
+    const rs=m.querySelector('#rpsend'); if(rs) rs.addEventListener('click',()=>sendReports(msg=>draw(msg||'신고를 보냈어요. 목록을 비웠어요.')));
     const fi=m.querySelector('#bkfile');
     m.querySelector('#bkin').addEventListener('click',()=>fi.click());
     fi.addEventListener('change',()=>{
@@ -1706,6 +1725,49 @@ function showBackup(){
   const close=()=>m.remove();
   m.addEventListener('click',e=>{ if(e.target===m) close(); });
   draw(); document.body.appendChild(m);
+}
+const FLAG='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>';
+const REASONS=['정답이 틀린 것 같아요','문제가 헷갈려요','보기가 이상해요','그 밖의 문제'];
+function reportCtl(it,pick){
+  const slot=document.getElementById('rpslot'); if(!slot||!it.id) return;
+  const draw=()=>{
+    if(REPORTS.open[it.id]){
+      slot.innerHTML=`<span class="rpdone">${FLAG}신고했어요 <button id="rpundo">취소</button></span>`;
+      slot.querySelector('#rpundo').addEventListener('click',()=>{ delete REPORTS.open[it.id]; saveReports(); draw(); });
+    }else{
+      slot.innerHTML=`<button class="rpbtn" id="rpbtn">${FLAG}이 문제 이상해요</button>`;
+      slot.querySelector('#rpbtn').addEventListener('click',()=>askReason(r=>{
+        REPORTS.open[it.id]={r,q:it.q,p:pick,ref:it.ref,at:Date.now()}; delete REPORTS.sent[it.id]; saveReports(); draw();
+      }));
+    }
+  };
+  draw();
+}
+function askReason(done){
+  const old=document.getElementById('dexmodal'); if(old) old.remove();
+  const m=document.createElement('div'); m.id='dexmodal'; m.className='dexmodal';
+  m.innerHTML=`<div class="dexpanel bkpanel rppanel" role="dialog" aria-modal="true" aria-label="신고 이유 고르기">
+    <h3>어떤 점이 이상한가요?</h3>
+    <p class="sub">고르시면 이 문제에 표시해 두고, 나중에 모아서 보낼 수 있어요.</p>
+    <div class="rplist">${REASONS.map((r,i)=>`<button data-i="${i}">${r}</button>`).join('')}</div>
+    <button class="bkclose" id="dexclose">닫기</button></div>`;
+  const close=()=>m.remove();
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
+  m.querySelector('#dexclose').addEventListener('click',close);
+  m.querySelectorAll('.rplist button').forEach(b=>b.addEventListener('click',()=>{ close(); done(REASONS[+b.dataset.i]); }));
+  document.body.appendChild(m);
+}
+function reportText(){
+  const ids=Object.keys(REPORTS.open).sort((a,b)=>REPORTS.open[a].at-REPORTS.open[b].at);
+  return `[성경 퀴즈 신고 ${ids.length}개]\n`+ids.map((id,k)=>{const x=REPORTS.open[id];
+    return `${k+1}. ${x.r} — ${x.ref} (${id})\n   ${x.q}\n   고른 답: ${x.p}`;}).join('\n');
+}
+function sendReports(after){
+  const text=reportText();
+  const clear=msg=>{ for(const id in REPORTS.open){ REPORTS.sent[id]=REPORTS.open[id]; } REPORTS.open={}; saveReports(); after&&after(msg); };
+  if(NATIVE&&NATIVE.shareText){ try{ NATIVE.shareText(text); clear(); return; }catch(e){} }
+  if(navigator.share){ navigator.share({text,title:'성경 퀴즈 신고'}).then(()=>clear()).catch(()=>{}); return; }
+  try{ navigator.clipboard.writeText(text).then(()=>clear('신고 내용을 복사했어요. 카톡에 붙여 넣어 보내 주세요.')); }catch(e){}
 }
 function exportRecord(){
   const json=JSON.stringify(snapshot());
@@ -2154,9 +2216,10 @@ function submit(){
       <div class="verdict">${right?'정답이에요':'아쉬워요'}</div>
       ${right&&it.type!=="order"&&it.type!=="match"?'':correctLine}
       <p>${esc(it.ex)}</p>
-      ${refHtml(it)}
+      <div class="fbfoot">${refHtml(it)}<span id="rpslot"></span></div>
     </div>
     <button class="primary" id="next" style="margin-top:14px">${last?'결과 보기':'다음 문제'}</button>`;
+  reportCtl(it,pickText(it,s).replace(/<[^>]*>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&'));
   const nb=document.getElementById('next');
   nb.addEventListener('click',()=>{ if(last) renderResult(); else { idx++; renderQuestion(); } });
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;

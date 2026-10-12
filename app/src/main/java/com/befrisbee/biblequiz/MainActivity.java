@@ -154,6 +154,15 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "기록 파일을 만들지 못했어요", Toast.LENGTH_SHORT).show());
             }
         }
+
+        @JavascriptInterface
+        public void shareText(String text) {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_TEXT, text);
+            final Intent chooser = Intent.createChooser(send, "신고 보내기");
+            runOnUiThread(() -> startActivity(chooser));
+        }
     }
 
     @Override
