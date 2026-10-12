@@ -5,6 +5,10 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.AtomicFile;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -12,19 +16,32 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /** 퀴즈 HTML을 앱 안에서 그대로 띄우는 화면. 인터넷 없이 동작하고, 성경 본문 링크만 휴대폰 브라우저로 연다. */
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START = "https://" + HOST + "/assets/index.html";
 
+    private static final int PICK_FILE = 41;
+
     private WebView web;
     private long lastBack = 0;
+    private ValueCallback<Uri[]> pickCallback;
+    private AtomicFile record;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 기록 파일: 앱의 files 폴더에 두어 안드로이드 자동 백업(구글 드라이브)에 함께 실림
+        record = new AtomicFile(new File(getFilesDir(), "bq-record.json"));
 
         web = new WebView(this);
         web.setBackgroundColor(getResources().getColor(R.color.paper, getTheme()));
@@ -61,11 +78,94 @@ public class MainActivity extends Activity {
             }
         });
 
+        // 기록 불러오기: 파일 고르기 창 열기
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (pickCallback != null) pickCallback.onReceiveValue(null);
+                pickCallback = callback;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType("*/*");
+                try {
+                    startActivityForResult(Intent.createChooser(i, "기록 파일 고르기"), PICK_FILE);
+                } catch (ActivityNotFoundException e) {
+                    pickCallback = null;
+                    Toast.makeText(MainActivity.this, "파일을 고를 앱이 없어요", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        web.addJavascriptInterface(new Bridge(), "BQNative");
+
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
         } else {
             web.loadUrl(START);
         }
+    }
+
+    /** 퀴즈 화면(JS)에서 부르는 기록 저장·읽기·보내기 */
+    private class Bridge {
+        @JavascriptInterface
+        public void save(String json) {
+            synchronized (MainActivity.this) {
+                FileOutputStream out = null;
+                try {
+                    out = record.startWrite();
+                    out.write(json.getBytes(StandardCharsets.UTF_8));
+                    record.finishWrite(out);
+                } catch (IOException e) {
+                    if (out != null) record.failWrite(out);
+                }
+            }
+        }
+
+        @JavascriptInterface
+        public String load() {
+            synchronized (MainActivity.this) {
+                try {
+                    return new String(record.readFully(), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    return "";
+                }
+            }
+        }
+
+        @JavascriptInterface
+        public void share(String name, String json) {
+            try {
+                File dir = new File(getCacheDir(), "share");
+                if (!dir.exists()) dir.mkdirs();
+                File f = new File(dir, name.replaceAll("[/\\\\]", "_"));
+                try (FileOutputStream out = new FileOutputStream(f)) {
+                    out.write(json.getBytes(StandardCharsets.UTF_8));
+                }
+                Uri uri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".files", f);
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("application/json");
+                send.putExtra(Intent.EXTRA_STREAM, uri);
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                final Intent chooser = Intent.createChooser(send, "기록 보내기");
+                runOnUiThread(() -> startActivity(chooser));
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "기록 파일을 만들지 못했어요", Toast.LENGTH_SHORT).show());
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_FILE) {
+            if (pickCallback != null) {
+                pickCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+                pickCallback = null;
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
